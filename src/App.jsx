@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
 import CashbackFlow from './incentivos/CashbackFlow.jsx'
+import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
 import { incentivos } from './data/incentivos.js'
+
+// Incentivos con flujo propio construido.
+const FLUJOS = {
+  cashback: CashbackFlow,
+  feria: FeriaCreditoFlow
+}
 
 export default function App() {
   // vista: 'home' (consolidado) | id de un incentivo
@@ -15,9 +22,10 @@ export default function App() {
   const incentivo = incentivos.find(i => i.id === vista)
   const volver = () => setVista('home')
 
-  // El Cashback tiene el flujo completo de 7 pasos.
-  if (incentivo?.flujo) {
-    return <CashbackFlow onBack={volver} />
+  // Incentivos con flujo completo construido (Cashback, Feria de Crédito).
+  const Flujo = FLUJOS[incentivo?.flujo]
+  if (Flujo) {
+    return <Flujo onBack={volver} />
   }
 
   // El resto comparte el modelo operativo (página de consolidado).

@@ -19,7 +19,13 @@ export const incentivos = [
     id: 'cashback', clave: 'CB', nombre: 'Cashback al Cliente', icon: 'Cash',
     desc: 'Bonificación directa al cliente por modelo facturado y entregado en el mes.',
     fuente: 'SAP · Dealers', presupuesto: 765000, ejecutado: 300000,
-    dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: true
+    dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: 'cashback'
+  },
+  {
+    id: 'feria', clave: 'FERIA', nombre: 'Feria de Crédito', icon: 'Percent',
+    desc: 'Co-promoción KIA + Inbursa: tasa preferencial y bono de enganche durante el evento de financiamiento.',
+    fuente: 'Zap · Inbursa', presupuesto: 3692000, ejecutado: 1240000,
+    dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'feria'
   },
   {
     id: 'volumen', clave: 'VOL', nombre: 'Bono por Volumen', icon: 'Trending',
@@ -38,12 +44,6 @@ export const incentivos = [
     desc: 'Subsidio de piso (floor plan) sobre el costo financiero del inventario en patio.',
     fuente: 'KIA Finance', presupuesto: 512000, ejecutado: 410000,
     dealers: 6, aclaraciones: 2, estatus: 'revision', flujo: false
-  },
-  {
-    id: 'financiamiento', clave: 'FIN', nombre: 'Penetración de Financiamiento', icon: 'Percent',
-    desc: 'Bono por porcentaje de ventas colocadas con crédito KIA Finance.',
-    fuente: 'KIA Finance', presupuesto: 345000, ejecutado: 152000,
-    dealers: 6, aclaraciones: 1, estatus: 'activo', flujo: false
   },
   {
     id: 'lealtad', clave: 'LOY', nombre: 'Lealtad y Recompra', icon: 'Star',
