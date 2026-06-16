@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #F6F7F8;
+  color: #05141F;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar discreto estilo enterprise */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #cdd3d8; border-radius: 8px; border: 2px solid #F6F7F8; }
+::-webkit-scrollbar-thumb:hover { background: #b4bcc2; }
+
+.tabular { font-variant-numeric: tabular-nums; }
