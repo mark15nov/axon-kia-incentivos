@@ -28,10 +28,10 @@ export const incentivos = [
     dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'feria'
   },
   {
-    id: 'volumen', clave: 'VOL', nombre: 'Bono por Volumen', icon: 'Trending',
-    desc: 'Bono escalonado al concesionario por superar el objetivo de unidades del periodo.',
-    fuente: 'SAP', presupuesto: 420000, ejecutado: 180000,
-    dealers: 6, aclaraciones: 1, estatus: 'activo', flujo: false
+    id: 'bonoventas', clave: 'BV', nombre: 'Bono por Ventas', icon: 'Trending',
+    desc: 'Bono por VIN calculado con VQM, meses de inventario y curtailment, validado contra la Monthly Commercial Offer.',
+    fuente: 'SAP (VQM) · Dealers', presupuesto: 420000, ejecutado: 180000,
+    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'bonoventas'
   },
   {
     id: 'demo', clave: 'DEMO', nombre: 'Bono de Demostradoras', icon: 'Box',

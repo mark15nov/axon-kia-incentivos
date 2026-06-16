@@ -2,13 +2,15 @@ import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
 import CashbackFlow from './incentivos/CashbackFlow.jsx'
 import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
+import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
 import { incentivos } from './data/incentivos.js'
 
 // Incentivos con flujo propio construido.
 const FLUJOS = {
   cashback: CashbackFlow,
-  feria: FeriaCreditoFlow
+  feria: FeriaCreditoFlow,
+  bonoventas: BonoVentasFlow
 }
 
 export default function App() {

@@ -185,7 +185,9 @@ export const ESTATUS = {
   aclaracion: { label: 'Aclaración', dot: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' },
   duplicado: { label: 'Duplicado', dot: 'bg-kia-red', text: 'text-kia-red', bg: 'bg-red-50' },
   // Duplicado contra meses anteriores: el VIN ya recibió este incentivo en un periodo previo.
-  historico: { label: 'Mes anterior', dot: 'bg-violet-500', text: 'text-violet-700', bg: 'bg-violet-50' }
+  historico: { label: 'Mes anterior', dot: 'bg-violet-500', text: 'text-violet-700', bg: 'bg-violet-50' },
+  // No apto: el VIN no califica para el bono (p. ej. curtailment acumulado).
+  no_apto: { label: 'No apto', dot: 'bg-slate-400', text: 'text-slate-500', bg: 'bg-slate-100' }
 }
 
 export const fmtMXN = (n) =>
