@@ -16,10 +16,10 @@ export const ESTATUS_INCENTIVO = {
 
 export const incentivos = [
   {
-    id: 'cashback', clave: 'CB', nombre: 'Cashback al Cliente', icon: 'Cash',
-    desc: 'Bonificación directa al cliente por modelo facturado y entregado en el mes.',
+    id: 'variable', clave: 'VM', nombre: 'Variable Margin', icon: 'Cash',
+    desc: 'Incentivos adicionales por desempeño del dealer sobre el margen variable del periodo.',
     fuente: 'SAP · Dealers', presupuesto: 765000, ejecutado: 300000,
-    dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: 'cashback'
+    dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: 'variable'
   },
   {
     id: 'feria', clave: 'FERIA', nombre: 'Feria de Crédito', icon: 'Percent',

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
-import CashbackFlow from './incentivos/CashbackFlow.jsx'
+import VariableMarginFlow from './incentivos/VariableMarginFlow.jsx'
 import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
@@ -8,7 +8,7 @@ import { incentivos } from './data/incentivos.js'
 
 // Incentivos con flujo propio construido.
 const FLUJOS = {
-  cashback: CashbackFlow,
+  variable: VariableMarginFlow,
   feria: FeriaCreditoFlow,
   bonoventas: BonoVentasFlow
 }
@@ -27,7 +27,7 @@ export default function App() {
   // Incentivos con flujo completo construido (Cashback, Feria de Crédito).
   const Flujo = FLUJOS[incentivo?.flujo]
   if (Flujo) {
-    return <Flujo onBack={volver} />
+    return <Flujo incentivo={incentivo} onBack={volver} />
   }
 
   // El resto comparte el modelo operativo (página de consolidado).
