@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
-import VariableMarginFlow from './incentivos/VariableMarginFlow.jsx'
+import VariableMarginFlow from './incentivos/variable/VariableMarginFlow.jsx'
 import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'

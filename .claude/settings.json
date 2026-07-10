@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(open -a \"Google Chrome\" http://localhost:5174/)"
+      "Bash(open -a \"Google Chrome\" http://localhost:5174/)",
+      "WebFetch(domain:www.autosnuevos.mx)",
+      "WebFetch(domain:www.kia.com)",
+      "WebFetch(domain:zonaauto.com.mx)"
     ],
     "additionalDirectories": [
       "/Users/luisriveradelissalde/Documents/GitHub/axon-gruas-salas/src/pages"
