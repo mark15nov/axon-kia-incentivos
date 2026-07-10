@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
 import VariableMarginFlow from './incentivos/variable/VariableMarginFlow.jsx'
+import OpeningFeeFlow from './incentivos/opening/OpeningFeeFlow.jsx'
 import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
+import FleetClaimFlow from './incentivos/fleet/FleetClaimFlow.jsx'
+import KiaFidelityFlow from './incentivos/fidelity/KiaFidelityFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
 import { incentivos } from './data/incentivos.js'
 
 // Incentivos con flujo propio construido.
 const FLUJOS = {
   variable: VariableMarginFlow,
+  opening: OpeningFeeFlow,
+  lowrate: OpeningFeeFlow,
+  floorplan: OpeningFeeFlow,
+  fleetclaim: FleetClaimFlow,
+  kiafidelity: KiaFidelityFlow,
   feria: FeriaCreditoFlow,
   bonoventas: BonoVentasFlow
 }

@@ -22,6 +22,36 @@ export const incentivos = [
     dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: 'variable'
   },
   {
+    id: 'opening', clave: 'OF', nombre: 'Opening Fee', icon: 'Invoice',
+    desc: 'La financiera absorbe la comisión por apertura del crédito o emite reembolsos; KIA subvenciona su share.',
+    fuente: 'KIA Finance · Inbursa', presupuesto: 1850000, ejecutado: 640000,
+    dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'opening'
+  },
+  {
+    id: 'lowrate', clave: 'LR', nombre: 'Low Rate', icon: 'Percent',
+    desc: 'Tasa preferencial de financiamiento subvencionada por KIA durante el periodo.',
+    fuente: 'KIA Finance · Inbursa', presupuesto: 2450000, ejecutado: 858000,
+    dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'lowrate'
+  },
+  {
+    id: 'floorplan', clave: 'FP', nombre: 'Floor Plan', icon: 'Layers',
+    desc: 'Subsidio del costo financiero del inventario en piso (floor plan) de la red.',
+    fuente: 'KIA Finance', presupuesto: 1320000, ejecutado: 512000,
+    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'floorplan'
+  },
+  {
+    id: 'fleetclaim', clave: 'FC', nombre: 'Fleet Claim', icon: 'Briefcase',
+    desc: 'Reclamo de incentivos por ventas a flotilla validados contra la orden de compra corporativa.',
+    fuente: 'SAP · Flotillas', presupuesto: 680000, ejecutado: 245000,
+    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'fleetclaim'
+  },
+  {
+    id: 'kiafidelity', clave: 'KF', nombre: 'KIA Fidelity', icon: 'Star',
+    desc: 'Beneficio de crédito por fidelidad calculado con el monto financiado y la Oferta Comercial, validado contra el pago de Inbursa.',
+    fuente: 'SAP · Inbursa', presupuesto: 1560000, ejecutado: 505000,
+    dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'kiafidelity'
+  },
+  {
     id: 'feria', clave: 'FERIA', nombre: 'Feria de Crédito', icon: 'Percent',
     desc: 'Co-promoción KIA + Inbursa: tasa preferencial y bono de enganche durante el evento de financiamiento.',
     fuente: 'Zap · Inbursa', presupuesto: 3692000, ejecutado: 1240000,
@@ -32,60 +62,6 @@ export const incentivos = [
     desc: 'Bono por VIN calculado con VQM, meses de inventario y curtailment, validado contra la Monthly Commercial Offer.',
     fuente: 'SAP (VQM) · Dealers', presupuesto: 420000, ejecutado: 180000,
     dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'bonoventas'
-  },
-  {
-    id: 'demo', clave: 'DEMO', nombre: 'Bono de Demostradoras', icon: 'Box',
-    desc: 'Apoyo por unidades demo en piso de exhibición y pruebas de manejo.',
-    fuente: 'Dealers', presupuesto: 168000, ejecutado: 96000,
-    dealers: 5, aclaraciones: 0, estatus: 'activo', flujo: false
-  },
-  {
-    id: 'inventario', clave: 'FLOOR', nombre: 'Apoyo a Inventario', icon: 'Layers',
-    desc: 'Subsidio de piso (floor plan) sobre el costo financiero del inventario en patio.',
-    fuente: 'KIA Finance', presupuesto: 512000, ejecutado: 410000,
-    dealers: 6, aclaraciones: 2, estatus: 'revision', flujo: false
-  },
-  {
-    id: 'lealtad', clave: 'LOY', nombre: 'Lealtad y Recompra', icon: 'Star',
-    desc: 'Incentivo por clientes de recompra y conquista de marca competidora.',
-    fuente: 'CRM · Dealers', presupuesto: 210000, ejecutado: 74000,
-    dealers: 4, aclaraciones: 0, estatus: 'activo', flujo: false
-  },
-  {
-    id: 'coop', clave: 'COOP', nombre: 'Apoyo Publicitario Co-op', icon: 'Megaphone',
-    desc: 'Reembolso de inversión publicitaria local aprobada bajo lineamiento de marca.',
-    fuente: 'Marketing', presupuesto: 288000, ejecutado: 130000,
-    dealers: 5, aclaraciones: 3, estatus: 'revision', flujo: false
-  },
-  {
-    id: 'posventa', clave: 'PV', nombre: 'Bono de Posventa', icon: 'Wrench',
-    desc: 'Incentivo por cumplimiento de metas de servicio, refacciones y retención de taller.',
-    fuente: 'Posventa', presupuesto: 196000, ejecutado: 88000,
-    dealers: 6, aclaraciones: 0, estatus: 'activo', flujo: false
-  },
-  {
-    id: 'csi', clave: 'CSI', nombre: 'Índice de Satisfacción', icon: 'Users',
-    desc: 'Bono por resultado de encuestas CSI/NPS de venta y servicio por encima del umbral.',
-    fuente: 'Calidad', presupuesto: 144000, ejecutado: 144000,
-    dealers: 6, aclaraciones: 0, estatus: 'cerrado', flujo: false
-  },
-  {
-    id: 'seguros', clave: 'SEG', nombre: 'Penetración de Seguros', icon: 'Shield',
-    desc: 'Bono por porcentaje de unidades vendidas con póliza KIA Seguros contratada.',
-    fuente: 'Seguros', presupuesto: 132000, ejecutado: 48000,
-    dealers: 5, aclaraciones: 1, estatus: 'activo', flujo: false
-  },
-  {
-    id: 'accesorios', clave: 'ACC', nombre: 'Accesorios Originales', icon: 'Gift',
-    desc: 'Apoyo por venta de paquetes de accesorios genuinos al momento de la entrega.',
-    fuente: 'Refacciones', presupuesto: 98000, ejecutado: 31000,
-    dealers: 4, aclaraciones: 0, estatus: 'activo', flujo: false
-  },
-  {
-    id: 'desempeno', clave: 'PERF', nombre: 'Bono Trimestral de Desempeño', icon: 'Briefcase',
-    desc: 'Bono integral por cumplimiento conjunto de ventas, posventa y satisfacción del trimestre.',
-    fuente: 'Dirección Comercial', presupuesto: 600000, ejecutado: 0,
-    dealers: 6, aclaraciones: 0, estatus: 'revision', flujo: false
   }
 ]
 

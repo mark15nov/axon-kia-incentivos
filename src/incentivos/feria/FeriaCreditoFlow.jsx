@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../../components/icons.jsx'
+import kiaLogo from '../../assets/kia-logo.png'
 import { Button } from '../../components/ui.jsx'
 import { FERIA_PERIODO } from '../../data/feriaCredito.js'
 
@@ -36,7 +37,7 @@ export default function FeriaCreditoFlow({ onBack }) {
             <Icon.Chevron width={14} height={14} className="rotate-180" /> Centro de incentivos
           </button>
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl font-extrabold tracking-tight">KIA</span>
+            <img src={kiaLogo} alt="KIA" className="h-8 w-auto brightness-0 invert" />
             <span className="h-5 w-px bg-white/25" />
             <span className="text-sm font-medium text-white/70">Incentivos</span>
           </div>

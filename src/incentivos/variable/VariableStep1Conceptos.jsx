@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Card, SectionTitle, Kpi, Pill, Button, ProgressBar } from '../../components/ui.jsx'
 import { Icon } from '../../components/icons.jsx'
-import { vmPilares, vmActivosDefault, VM_PRESUPUESTO, fmtMXN } from '../../data/variableMargin.js'
+import { vmPilares, vmActivosDefault, VM_PRESUPUESTO, VM_MODELOS_KIA, vmModelosRetailDefault, fmtMXN } from '../../data/variableMargin.js'
 
 const TONE = {
   red: { text: 'text-kia-red', bar: 'bg-kia-red', chip: 'red', hex: '#BB162B' },
@@ -18,8 +18,13 @@ export default function VariableStep1Conceptos() {
     return s
   })
   const [guardado, setGuardado] = useState(false)
+  const [modelosRetail, setModelosRetail] = useState(vmModelosRetailDefault)
 
   const touch = (fn) => { setState(fn); setGuardado(false) }
+  const toggleModelo = (m) => {
+    setGuardado(false)
+    setModelosRetail(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])
+  }
   const toggle = (id) => touch(s => ({ ...s, [id]: { ...s[id], activo: !s[id].activo } }))
   const setPeso = (id, peso) => touch(s => ({ ...s, [id]: { ...s[id], peso } }))
   const addBolsa = (id, d) => touch(s => ({ ...s, [id]: { ...s[id], bolsa: Math.max(0, s[id].bolsa + d) } }))
@@ -102,7 +107,31 @@ export default function VariableStep1Conceptos() {
                               {st.activo && <Pill tone={t.chip}>{st.peso}% del score</Pill>}
                             </div>
 
-                            {st.activo && (
+                            {st.activo && v.id === 'v_ret' && (
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <div className="flex items-center justify-between text-[11px] font-medium text-kia-gray mb-2">
+                                  <span>Modelos aplicables</span>
+                                  <span className="tabular font-bold text-kia-black">{modelosRetail.length}/{VM_MODELOS_KIA.length}</span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                  {VM_MODELOS_KIA.map(m => {
+                                    const on = modelosRetail.includes(m)
+                                    return (
+                                      <button key={m} type="button" onClick={() => toggleModelo(m)} aria-pressed={on}
+                                        className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left transition-colors ${on ? 'border-kia-line bg-white' : 'border-dashed border-slate-200 bg-slate-50/60'}`}>
+                                        <span className={`shrink-0 h-4 w-4 rounded grid place-items-center border transition-colors ${on ? 'text-white border-transparent' : 'border-slate-300 text-transparent'}`}
+                                          style={on ? { background: t.hex } : undefined}>
+                                          <Icon.Check width={11} height={11} />
+                                        </span>
+                                        <span className={`text-xs font-semibold truncate ${on ? '' : 'text-kia-gray'}`}>{m}</span>
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {st.activo && v.id !== 'v_ret' && (
                               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                                 <div>
                                   <div className="flex items-center justify-between text-[11px] font-medium text-kia-gray mb-1.5">
@@ -132,6 +161,11 @@ export default function VariableStep1Conceptos() {
               </Card>
             )
           })}
+
+          <button type="button"
+            className="w-full rounded-xl border-2 border-dashed border-slate-300 py-3.5 flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wide text-kia-gray hover:border-kia-red hover:text-kia-red transition-colors">
+            <span className="text-lg leading-none font-semibold">+</span> Nueva variable
+          </button>
         </div>
 
         {/* ---------- Resumen en vivo ---------- */}

@@ -1,4 +1,5 @@
 import { Icon } from './components/icons.jsx'
+import kiaLogo from './assets/kia-logo.png'
 import { Pill } from './components/ui.jsx'
 import { incentivos, consolidadoIncentivos, ESTATUS_INCENTIVO, periodoActivo } from './data/incentivos.js'
 import { fmtMXN } from './data/mockData.js'
@@ -12,7 +13,7 @@ export default function Dashboard({ onOpen }) {
       <header className="sticky top-0 z-10 bg-[#0A0F14] border-b border-white/10">
         <div className="max-w-[1240px] mx-auto px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl font-extrabold tracking-tight text-white">KIA</span>
+            <img src={kiaLogo} alt="KIA" className="h-9 w-auto brightness-0 invert" />
             <span className="h-5 w-px bg-white/20" />
             <span className="text-sm font-medium text-white/60">Centro de Incentivos</span>
           </div>

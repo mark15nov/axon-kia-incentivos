@@ -4,7 +4,10 @@
       "Bash(open -a \"Google Chrome\" http://localhost:5174/)",
       "WebFetch(domain:www.autosnuevos.mx)",
       "WebFetch(domain:www.kia.com)",
-      "WebFetch(domain:zonaauto.com.mx)"
+      "WebFetch(domain:zonaauto.com.mx)",
+      "Bash(mkdir -p src/assets)",
+      "Bash(cp KIA_logo3.svg.png src/assets/kia-logo.png)",
+      "Bash(git mv *)"
     ],
     "additionalDirectories": [
       "/Users/luisriveradelissalde/Documents/GitHub/axon-gruas-salas/src/pages"

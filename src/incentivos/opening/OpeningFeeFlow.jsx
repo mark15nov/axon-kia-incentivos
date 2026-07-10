@@ -2,44 +2,51 @@ import { useState } from 'react'
 import { Icon } from '../../components/icons.jsx'
 import kiaLogo from '../../assets/kia-logo.png'
 import { Button } from '../../components/ui.jsx'
-import { VM_PERIODO } from '../../data/variableMargin.js'
+import { OF_PERIODO } from '../../data/openingFee.js'
 
-import VariableStep1 from './VariableStep1Conceptos.jsx'
-import VariableStep2 from './VariableStep2Forecast.jsx'
-import VariableStep3 from './VariableStep3Reporte.jsx'
-import VariableStep4 from './VariableStep4RecepcionVin.jsx'
-import VariableStep5 from './VariableStep5ValidacionVin.jsx'
+import OpeningStep1 from './OpeningStep1DefinirOferta.jsx'
+import OpeningFeeStep1 from './OpeningFeeStep1DefinirOferta.jsx'
+import FloorPlanStep1 from './FloorPlanStep1DefinirOferta.jsx'
+import OpeningStep2 from './OpeningStep2Forecast.jsx'
+import OpeningStep3 from './OpeningStep3RevisionForecast.jsx'
+import OpeningStep4 from './OpeningStep4Comunicado.jsx'
+import OpeningStep5 from './OpeningStep5RecepcionVin.jsx'
+import OpeningStep6 from './OpeningStep6ValidacionVin.jsx'
 
 const ETAPAS = {
   1: 'Definición del incentivo',
   2: 'Facturación y validación'
 }
 
-// Subtítulo del sidebar por programa (los que comparten este flujo).
+// Subtítulo del sidebar por programa (los tres comparten el mismo flujo).
 const SUBTITULO = {
-  variable: 'Desempeño del dealer',
-  fleetclaim: 'Reclamo de flotilla'
+  opening: 'Comisión por apertura',
+  lowrate: 'Tasa preferencial',
+  floorplan: 'Piso de inventario'
 }
 
 const STEPS = [
-  { n: 1, etapa: 1, p: 1, key: 'conc', titulo: 'Definir Oferta Comercial', fuente: 'SAP · Margen del periodo', icon: Icon.Sliders, Comp: VariableStep1 },
-  { n: 2, etapa: 1, p: 2, key: 'forecast', titulo: 'Forecast por dealer', fuente: 'Histórico 24 meses · KIA BRAIN', icon: Icon.Trending, Comp: VariableStep2 },
-  { n: 3, etapa: 1, p: 3, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'Revisión y validación', icon: Icon.Mail, Comp: VariableStep3 },
-  { n: 4, etapa: 2, p: 1, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
-  { n: 5, etapa: 2, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 }
+  { n: 1, etapa: 1, p: 1, key: 'oferta', titulo: 'Definir Oferta', fuente: 'Constructor de oferta', icon: Icon.Sliders, Comp: OpeningStep1 },
+  { n: 2, etapa: 1, p: 2, key: 'forecast', titulo: 'Forecast por dealer', fuente: 'Histórico 24 meses · KIA BRAIN', icon: Icon.Trending, Comp: OpeningStep2 },
+  { n: 3, etapa: 1, p: 3, key: 'revision', titulo: 'Revisión vs. Inbursa', fuente: 'Forecast financiera', icon: Icon.Grid, Comp: OpeningStep3 },
+  { n: 4, etapa: 1, p: 4, key: 'comunicado', titulo: 'Comunicado a dealers', fuente: 'Difusión a la red', icon: Icon.Mail, Comp: OpeningStep4 },
+  { n: 5, etapa: 2, p: 1, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: OpeningStep5 },
+  { n: 6, etapa: 2, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: OpeningStep6 }
 ]
 
-export default function VariableMarginFlow({ onBack, incentivo }) {
+export default function OpeningFeeFlow({ onBack, incentivo }) {
   const [current, setCurrent] = useState(1)
   const [done, setDone] = useState([])
   const [okPago, setOkPago] = useState(false)
 
-  const nombre = incentivo?.nombre ?? 'Variable Margin'
-  const subtitulo = SUBTITULO[incentivo?.id] ?? 'Desempeño del dealer'
-  const folio = `${incentivo?.clave ?? 'VM'}-JUN26-0428`
+  const nombre = incentivo?.nombre ?? 'Opening Fee'
+  const subtitulo = SUBTITULO[incentivo?.id] ?? 'Comisión por apertura'
+  const folio = `${incentivo?.clave ?? 'OF'}-JUN26-0428`
 
   const active = STEPS.find(s => s.n === current)
-  const ActiveComp = active.Comp
+  // Cada programa puede tener su propio paso 1 (Definir Oferta); el resto de pasos es compartido.
+  const STEP1 = { floorplan: FloorPlanStep1, opening: OpeningFeeStep1 }
+  const ActiveComp = active.n === 1 ? (STEP1[incentivo?.id] ?? active.Comp) : active.Comp
 
   const markDone = (n) => setDone(d => (d.includes(n) ? d : [...d, n]))
   const goNext = () => { markDone(current); if (current < STEPS.length) setCurrent(current + 1) }
@@ -102,7 +109,7 @@ export default function VariableMarginFlow({ onBack, incentivo }) {
           <div className="text-[11px] text-white/45 uppercase tracking-wider">Periodo activo</div>
           <div className="flex items-center gap-2 mt-1">
             <Icon.Clock className="text-kia-red-soft" width={15} height={15} />
-            <span className="text-sm font-semibold">{VM_PERIODO}</span>
+            <span className="text-sm font-semibold">{OF_PERIODO}</span>
           </div>
         </div>
       </aside>
@@ -159,7 +166,7 @@ export default function VariableMarginFlow({ onBack, incentivo }) {
             <div className="mx-auto h-14 w-14 rounded-2xl bg-emerald-500 text-white grid place-items-center mb-4"><Icon.Check width={28} height={28} /></div>
             <h3 className="text-lg font-bold">Reporte enviado a Finanzas</h3>
             <p className="text-sm text-kia-gray mt-1.5 leading-relaxed">
-              El reporte de pago del incentivo {nombre} · {VM_PERIODO} se envió a Finanzas para su liberación.
+              El reporte de pago del incentivo {nombre} · {OF_PERIODO} se envió a Finanzas para su liberación.
             </p>
             <div className="mt-3 flex justify-center">
               <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold bg-kia-black text-white">Folio {folio}</span>

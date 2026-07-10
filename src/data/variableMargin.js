@@ -62,6 +62,14 @@ export const vmPilares = [
 // Selección inicial (sus pesos suman 100%).
 export const vmActivosDefault = ['v_vol', 'v_ret', 'm_mix', 'm_neto', 'c_csi', 'c_nps']
 
+// Lineup KIA México — modelos aplicables a la Aceleración retail.
+export const VM_MODELOS_KIA = [
+  'K3', 'K4', 'Seltos', 'Sonet', 'Sportage', 'Sportage Híbrida', 'Sorento', 'Telluride', 'Niro'
+]
+
+// Modelos preseleccionados por defecto para el concepto.
+export const vmModelosRetailDefault = ['K3', 'K4', 'Seltos', 'Sportage', 'Sorento']
+
 // --- Conceptos que componen el margen variable del periodo ---
 // suma meta = 765,000 · suma ejecutado = 300,000 (cuadra con el KPI).
 export const vmConceptos = [
