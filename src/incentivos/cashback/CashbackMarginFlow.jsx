@@ -4,12 +4,14 @@ import kiaLogo from '../../assets/kia-logo.png'
 import { Button } from '../../components/ui.jsx'
 import { VM_PERIODO } from '../../data/variableMargin.js'
 
-import VariableStep1 from './VariableStep1DefinirOferta.jsx'
-import VariableStep2 from './VariableStep2Forecast.jsx'
-import VariableStep3 from './VariableStep3Reporte.jsx'
-import VariableStep4 from './VariableStep4RecepcionVin.jsx'
-import VariableStep5 from './VariableStep5ValidacionVin.jsx'
-import VariableStep6 from './VariableStepPagoFinanzas.jsx'
+// Etapa 2 reutiliza los pasos de facturación de Variable Margin.
+import VariableStep4 from '../variable/VariableStep4RecepcionVin.jsx'
+import VariableStep5 from '../variable/VariableStep5ValidacionVin.jsx'
+import CashbackStep1 from './CashbackStep1DefinirOferta.jsx'
+import CashbackStep2 from './CashbackStep2RecepcionVin.jsx'
+import CashbackStep3 from './CashbackStep3ValidacionVin.jsx'
+import CashbackStep4 from './CashbackStep4ReporteFinanzas.jsx'
+import CashbackStep5 from './CashbackStep5PagoFinanzas.jsx'
 
 const ETAPAS = {
   1: 'Definición del incentivo',
@@ -17,29 +19,24 @@ const ETAPAS = {
   3: 'Finanzas y pago'
 }
 
-// Subtítulo del sidebar por programa (los que comparten este flujo).
-const SUBTITULO = {
-  variable: 'Desempeño del dealer',
-  fleetclaim: 'Reclamo de flotilla'
-}
-
 const STEPS = [
-  { n: 1, etapa: 1, p: 1, key: 'conc', titulo: 'Definir Oferta Comercial', fuente: 'SAP · Margen del periodo', icon: Icon.Sliders, Comp: VariableStep1 },
-  { n: 2, etapa: 1, p: 2, key: 'forecast', titulo: 'Forecast por dealer', fuente: 'Histórico 24 meses · KIA BRAIN', icon: Icon.Trending, Comp: VariableStep2 },
-  { n: 3, etapa: 1, p: 3, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'Revisión y validación', icon: Icon.Mail, Comp: VariableStep3 },
-  { n: 4, etapa: 2, p: 1, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
-  { n: 5, etapa: 2, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
-  { n: 6, etapa: 3, p: 1, key: 'pago', titulo: 'Finanzas y pago', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: VariableStep6 }
+  { n: 1, etapa: 1, p: 1, key: 'conc', titulo: 'Definir Oferta Comercial', fuente: 'Oferta aprobada + SAP', icon: Icon.Sliders, Comp: CashbackStep1 },
+  { n: 2, etapa: 1, p: 2, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: CashbackStep2 },
+  { n: 3, etapa: 1, p: 3, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: CashbackStep3 },
+  { n: 4, etapa: 1, p: 4, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'VIN que califican al pago', icon: Icon.Mail, Comp: CashbackStep4 },
+  { n: 5, etapa: 2, p: 1, key: 'recepfact', titulo: 'Recepción de Facturas', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
+  { n: 6, etapa: 2, p: 2, key: 'validfact', titulo: 'Validación de Facturas', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
+  { n: 7, etapa: 3, p: 1, key: 'pago', titulo: 'Finanzas y pago', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: CashbackStep5 }
 ]
 
-export default function VariableMarginFlow({ onBack, incentivo }) {
+export default function CashbackMarginFlow({ onBack, incentivo }) {
   const [current, setCurrent] = useState(1)
   const [done, setDone] = useState([])
   const [okPago, setOkPago] = useState(false)
 
-  const nombre = incentivo?.nombre ?? 'Variable Margin'
-  const subtitulo = SUBTITULO[incentivo?.id] ?? 'Desempeño del dealer'
-  const folio = `${incentivo?.clave ?? 'VM'}-JUN26-0428`
+  const nombre = incentivo?.nombre ?? 'Cashback'
+  const subtitulo = 'Bono en efectivo al cliente'
+  const folio = `${incentivo?.clave ?? 'CB'}-JUN26-0428`
 
   const active = STEPS.find(s => s.n === current)
   const ActiveComp = active.Comp

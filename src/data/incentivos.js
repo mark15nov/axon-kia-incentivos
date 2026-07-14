@@ -52,6 +52,12 @@ export const incentivos = [
     dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'kiafidelity'
   },
   {
+    id: 'cashback', clave: 'CB', nombre: 'Cashback', icon: 'Cash',
+    desc: 'Bono en efectivo al cliente sobre unidades seleccionadas; KIA subvenciona el monto por VIN durante el periodo.',
+    fuente: 'SAP · Dealers', presupuesto: 1980000, ejecutado: 660000,
+    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'cashback'
+  },
+  {
     id: 'feria', clave: 'FERIA', nombre: 'Feria de Crédito', icon: 'Percent',
     desc: 'Co-promoción KIA + Inbursa: tasa preferencial y bono de enganche durante el evento de financiamiento.',
     fuente: 'Zap · Inbursa', presupuesto: 3692000, ejecutado: 1240000,

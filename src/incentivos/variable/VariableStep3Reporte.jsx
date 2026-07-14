@@ -33,6 +33,12 @@ export default function VariableStep3Reporte() {
   const r = vmForecastResumen()
   const tc = vmForecast.reduce((a, d) => { a[d.tendencia]++; return a }, { up: 0, flat: 0, down: 0 })
 
+  // Provisión contable: 1.10% del Dealer Basic Price (S04). Base estimada a
+  // partir de las unidades del forecast y un precio base promedio por unidad.
+  const TASA_PROVISION = 0.011
+  const dealerBasicPrice = r.estimado * 420000
+  const provision = Math.round(dealerBasicPrice * TASA_PROVISION)
+
   // Checklist de validación (todo verde → listo para envío).
   const checklist = [
     { ok: balanceada, titulo: 'Oferta comercial balanceada', detalle: `${activos.length} variables · pesos ${pesoTotal}% · ${fmtMXN(presupuesto)} dentro del tope ${fmtMXN(VM_PRESUPUESTO)}` },
@@ -68,6 +74,37 @@ export default function VariableStep3Reporte() {
         <Kpi label="Dealers en meta" value={`${r.dealersMeta} / ${r.dealers}`} sub={`Prob ≥ ${UMBRAL_META}%`} />
         <Kpi label="Confianza del modelo" value={`${r.confianza}%`} sub="Histórico 24 meses" />
       </div>
+
+      {/* Provisión contable · 1.10% del Dealer Basic Price (S04 / S08) */}
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="h-10 w-10 shrink-0 rounded-xl bg-kia-black text-white grid place-items-center"><Icon.Cash width={19} height={19} /></span>
+            <div className="min-w-0">
+              <h3 className="font-bold">Provisión contable</h3>
+              <p className="text-sm text-kia-gray mt-0.5">Cálculo de SAP: 1.10% del Dealer Basic Price · disponible en la transacción de Contabilidad</p>
+            </div>
+          </div>
+          <Pill tone="ink">Tasa 1.10%</Pill>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
+            <div className="text-xs text-kia-gray">Dealer Basic Price (base)</div>
+            <div className="text-xl font-bold tabular mt-0.5">{fmtMXN(dealerBasicPrice)}</div>
+            <div className="text-[11px] text-kia-gray mt-0.5">{r.estimado.toLocaleString('es-MX')} u estimadas</div>
+          </div>
+          <div className="rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
+            <div className="text-xs text-kia-gray">Tasa de provisión</div>
+            <div className="text-xl font-bold tabular mt-0.5">1.10%</div>
+            <div className="text-[11px] text-kia-gray mt-0.5">Sobre Dealer Basic Price</div>
+          </div>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-3.5">
+            <div className="text-xs text-emerald-700/80">Provisión contable</div>
+            <div className="text-xl font-bold tabular mt-0.5 text-emerald-700">{fmtMXN(provision)}</div>
+            <div className="text-[11px] text-emerald-700/80 mt-0.5">Disponible en Contabilidad</div>
+          </div>
+        </div>
+      </Card>
 
       {/* Checklist de validación */}
       <Card className="p-5">
