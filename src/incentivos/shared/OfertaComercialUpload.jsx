@@ -7,7 +7,10 @@ import { Icon } from '../../components/icons.jsx'
 export default function OfertaComercialUpload({
   titulo = 'Cargar oferta comercial aprobada a SAP',
   subtitulo = 'Monthly Commercial Offer (PDF) · Daniel Silis → SAP ZASDI10000',
-  defaultName = 'oferta_comercial_junio_2026.pdf'
+  defaultName = 'oferta_comercial_junio_2026.pdf',
+  onLoaded,
+  onReset,
+  simulable = false
 }) {
   const [estado, setEstado] = useState('idle') // idle | subiendo | listo
   const [drag, setDrag] = useState(false)
@@ -21,7 +24,7 @@ export default function OfertaComercialUpload({
     if (timer.current) clearTimeout(timer.current)
     setArchivo({ name: file?.name || defaultName, size: file?.size })
     setEstado('subiendo')
-    timer.current = setTimeout(() => setEstado('listo'), 1100)
+    timer.current = setTimeout(() => { setEstado('listo'); onLoaded?.() }, 1100)
   }
   const onDrop = (e) => { e.preventDefault(); setDrag(false); subir(e.dataTransfer.files?.[0]) }
   const onPick = (e) => { const f = e.target.files?.[0]; if (f) subir(f) }
@@ -29,6 +32,7 @@ export default function OfertaComercialUpload({
     if (timer.current) clearTimeout(timer.current)
     setEstado('idle'); setArchivo(null)
     if (inputRef.current) inputRef.current.value = ''
+    onReset?.()
   }
 
   return (
@@ -60,9 +64,17 @@ export default function OfertaComercialUpload({
           </div>
           <div className="font-bold">{drag ? 'Suelta el PDF para cargar' : 'Arrastra el PDF de la oferta comercial aquí'}</div>
           <div className="text-sm text-kia-gray mt-1">o haz clic para seleccionar · PDF · máx. 20 MB</div>
-          <span className="inline-flex items-center gap-2 mt-4 rounded-xl px-4 py-2.5 text-sm font-semibold bg-kia-red text-white pointer-events-none">
-            <Icon.Upload width={16} height={16} /> Seleccionar PDF
-          </span>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <span className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-kia-red text-white pointer-events-none">
+              <Icon.Upload width={16} height={16} /> Seleccionar PDF
+            </span>
+            {simulable && (
+              <button type="button" onClick={(e) => { e.stopPropagation(); subir() }}
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-white text-kia-black border border-kia-line hover:bg-slate-50 transition-colors">
+                <Icon.Spark width={16} height={16} className="text-kia-red" /> Ver simulación
+              </button>
+            )}
+          </div>
         </div>
       )}
 

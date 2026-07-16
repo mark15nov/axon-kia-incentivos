@@ -8,9 +8,8 @@ import { VM_PERIODO } from '../../data/variableMargin.js'
 import VariableStep4 from '../variable/VariableStep4RecepcionVin.jsx'
 import VariableStep5 from '../variable/VariableStep5ValidacionVin.jsx'
 import CashbackStep1 from './CashbackStep1DefinirOferta.jsx'
-import CashbackStep2 from './CashbackStep2RecepcionVin.jsx'
-import CashbackStep3 from './CashbackStep3ValidacionVin.jsx'
-import CashbackStep4 from './CashbackStep4ReporteFinanzas.jsx'
+import CashbackValidacion from './CashbackValidacionVin.jsx'
+import CashbackVoBo from './CashbackVoBoFinanzas.jsx'
 import CashbackStep5 from './CashbackStep5PagoFinanzas.jsx'
 
 const ETAPAS = {
@@ -21,12 +20,11 @@ const ETAPAS = {
 
 const STEPS = [
   { n: 1, etapa: 1, p: 1, key: 'conc', titulo: 'Definir Oferta Comercial', fuente: 'Oferta aprobada + SAP', icon: Icon.Sliders, Comp: CashbackStep1 },
-  { n: 2, etapa: 1, p: 2, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: CashbackStep2 },
-  { n: 3, etapa: 1, p: 3, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: CashbackStep3 },
-  { n: 4, etapa: 1, p: 4, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'VIN que califican al pago', icon: Icon.Mail, Comp: CashbackStep4 },
-  { n: 5, etapa: 2, p: 1, key: 'recepfact', titulo: 'Recepción de Facturas', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
-  { n: 6, etapa: 2, p: 2, key: 'validfact', titulo: 'Validación de Facturas', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
-  { n: 7, etapa: 3, p: 1, key: 'pago', titulo: 'Finanzas y pago', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: CashbackStep5 }
+  { n: 2, etapa: 1, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Análisis de facturas', icon: Icon.Check, Comp: CashbackValidacion },
+  { n: 3, etapa: 1, p: 3, key: 'vobo', titulo: 'VoBo de Finanzas', fuente: 'Autorización + correos', icon: Icon.Shield, Comp: CashbackVoBo },
+  { n: 4, etapa: 2, p: 1, key: 'recepfact', titulo: 'Recepción de Facturas', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
+  { n: 5, etapa: 2, p: 2, key: 'validfact', titulo: 'Validación de Facturas', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
+  { n: 6, etapa: 3, p: 1, key: 'pago', titulo: 'Finanzas y pago', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: CashbackStep5 }
 ]
 
 export default function CashbackMarginFlow({ onBack, incentivo }) {

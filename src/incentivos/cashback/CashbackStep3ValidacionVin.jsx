@@ -18,9 +18,9 @@ const FILTROS = [
   { v: 'rechazado', label: '✕ Rechazados' }
 ]
 
-// Validación y cálculo automático que corre SAP sobre cada VIN clasificado
+// Validación y cálculo automático que corre KIA BRAIN sobre cada VIN clasificado
 // como Cashback antes de liberar el pago del incentivo.
-const SAP_VALIDACIONES = [
+const BRAIN_VALIDACIONES = [
   {
     titulo: 'Validación de fecha de retail',
     desc: 'Confirma que la fecha de venta al público (retail) cae dentro del periodo vigente del incentivo.'
@@ -103,24 +103,24 @@ export default function CashbackStep3ValidacionVin() {
       <SectionTitle
         kicker="Etapa 1 · Paso 3"
         title="Validación de VIN"
-        desc="SAP ejecuta de forma automática la validación y el cálculo del incentivo sobre cada VIN, extrae el resultado y detecta qué unidades cumplen y cuáles se rechazan (y por qué), notificando el rechazo al dealer."
+        desc="KIA BRAIN ejecuta de forma automática la validación y el cálculo del incentivo sobre cada VIN, extrae el resultado y detecta qué unidades cumplen y cuáles se rechazan (y por qué), notificando el rechazo al dealer."
         right={<Pill tone="ink"><Icon.Database width={14} height={14} /> {r.total} VIN extraídos</Pill>}
       />
 
-      {/* ---------- Validación y cálculo automático en SAP ---------- */}
+      {/* ---------- Validación y cálculo automático en KIA BRAIN ---------- */}
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="h-10 w-10 shrink-0 rounded-xl bg-kia-black text-white grid place-items-center"><Icon.Database width={19} height={19} /></span>
+            <span className="h-10 w-10 shrink-0 rounded-xl bg-kia-black text-white grid place-items-center"><Icon.Brain width={19} height={19} /></span>
             <div className="min-w-0">
-              <h3 className="font-bold">Validación y cálculo automático en SAP</h3>
-              <p className="text-sm text-kia-gray mt-0.5">Procesos ejecutados por SAP sobre cada VIN antes de liberar el pago del incentivo.</p>
+              <h3 className="font-bold">Validación y cálculo automático en KIA BRAIN</h3>
+              <p className="text-sm text-kia-gray mt-0.5">Procesos ejecutados por KIA BRAIN sobre cada VIN antes de liberar el pago del incentivo.</p>
             </div>
           </div>
-          <Pill tone="green"><Icon.Check width={13} height={13} /> Automático</Pill>
+          <Pill tone="ink"><Icon.Brain width={13} height={13} /> KIA BRAIN</Pill>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {SAP_VALIDACIONES.map((v, i) => (
+          {BRAIN_VALIDACIONES.map((v, i) => (
             <div key={i} className="flex items-start gap-3 rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
               <span className="mt-0.5 h-7 w-7 shrink-0 rounded-lg bg-emerald-500 text-white grid place-items-center"><Icon.Check width={15} height={15} /></span>
               <div className="min-w-0">
