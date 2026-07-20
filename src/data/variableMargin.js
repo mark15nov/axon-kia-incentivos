@@ -478,6 +478,72 @@ export function vmCierreResumen() {
   }
 }
 
+// --- Correos del cierre (se muestran editables antes de enviar) ---
+
+// Reporte individual que recibe cada dealer con su resultado del periodo.
+export function vmCorreoDealer(c, nombre = 'Variable Margin') {
+  const modelos = c.modelos
+    .map(m => `  • ${m.modelo}: ${m.real} u de ${m.meta} (${m.dif >= 0 ? '+' : ''}${m.dif})`)
+    .join('\n')
+
+  const cierre = c.cumplio
+    ? `Con este resultado el dealer ALCANZA el incentivo del periodo. El pago se procesa en la corrida de Finanzas del cierre.`
+    : `Con este resultado el dealer NO alcanza el incentivo del periodo. El equipo comercial de zona dará seguimiento al plan de recuperación para el siguiente corte.`
+
+  return `Estimado ${c.dealer}:
+
+Cierre del incentivo ${nombre} correspondiente a ${VM_PERIODO}.
+
+RESULTADO
+  Meta del periodo:      ${c.meta} unidades
+  Unidades reales:       ${c.real} unidades
+  Cumplimiento:          ${c.pctMeta}% (${c.dif >= 0 ? '+' : ''}${c.dif} u)
+
+DETALLE POR MODELO
+${modelos}
+
+ANÁLISIS
+${c.motivo}
+
+${cierre}
+
+Saludos,
+Incentivos KIA`
+}
+
+// Corrida del cálculo final que se manda a Finanzas.
+export function vmCorreoFinanzas(res, vin, nombre = 'Variable Margin', folio = 'VM-JUN26-0428') {
+  return `Finanzas KIA:
+
+Se envía la corrida del cálculo final del incentivo ${nombre} · ${VM_PERIODO} para posteo y pago.
+
+1) RESULTADO COMERCIAL DEL PERIODO
+   Cumplimiento de metas de venta de la red. No es la base de pago.
+
+   Dealers en la red:        ${res.dealers}
+   Dealers que cumplieron:   ${res.cumplieron} (${res.pctDealers}%)
+   Unidades vendidas:        ${res.real.toLocaleString('es-MX')} de ${res.meta.toLocaleString('es-MX')} de meta (${res.pctRed}%)
+
+2) BASE DE PAGO DEL INCENTIVO
+   Únicamente los VIN reclamados al incentivo y validados contra la
+   oferta comercial del periodo. Es la cifra que se postea.
+
+   VIN reclamados:           ${vin.total}
+   VIN que califican:        ${vin.ok}
+   VIN rechazados:           ${vin.rech}
+   Monto facturado:          ${fmtMXN(vin.facturado)}
+   MONTO A PAGAR:            ${fmtMXN(vin.pago)}
+
+   Folio de la corrida:      ${folio}
+
+El detalle por dealer y por VIN va adjunto en el archivo de la corrida.
+Se solicita posteo en SAP y programación del pago conforme al calendario
+del periodo.
+
+Saludos,
+Incentivos KIA`
+}
+
 // --- Aclaraciones abiertas (diferencias soporte vs SAP) ---
 export const vmAclaraciones = [
   { dealer: 'KIA Guadalajara Sur', concepto: 'Bono por Volumen', monto: 51000, detalle: '3 VIN sin soporte de entrega en el periodo.' },

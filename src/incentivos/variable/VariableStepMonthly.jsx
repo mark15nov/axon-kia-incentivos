@@ -2,8 +2,16 @@ import { useMemo, useState } from 'react'
 import { Card, SectionTitle, Kpi, Pill, Button, ProgressBar } from '../../components/ui.jsx'
 import { Icon } from '../../components/icons.jsx'
 import {
-  vmCierre, vmCierreResumen, vmVinResumen, VM_PERIODO, fmtMXN
+  vmCierre, vmCierreResumen, vmVinResumen, vmCorreoDealer, vmCorreoFinanzas,
+  VM_PERIODO, fmtMXN
 } from '../../data/variableMargin.js'
+
+// A quién se le manda el reporte de cierre.
+const AUDIENCIAS = [
+  { v: 'todos', label: 'Todos los dealers' },
+  { v: 'cumplio', label: 'Solo los que cumplieron' },
+  { v: 'fallo', label: 'Solo los que no cumplieron' }
+]
 
 // Etapa 3 · MONTHLY. Cierre del periodo: resumen general de lo que se
 // logró (quién cumplió la meta, quién no y por qué) y envío del reporte
@@ -28,6 +36,16 @@ export default function VariableStepMonthly({ nombre = 'Variable Margin', folio 
   const [envioDealers, setEnvioDealers] = useState('idle')   // idle | enviando | enviado
   const [envioFinanzas, setEnvioFinanzas] = useState('idle')
 
+  // Modal de preview del correo: 'dealers' | 'finanzas' | null
+  const [preview, setPreview] = useState(null)
+  const [audiencia, setAudiencia] = useState('todos')
+  const [idx, setIdx] = useState(0)                // dealer que se está previsualizando
+  const [asunto, setAsunto] = useState(`Cierre Variable Margin · ${VM_PERIODO} — resultado de tu dealer`)
+  const [asuntoFin, setAsuntoFin] = useState(`Corrida del cálculo final · Variable Margin ${VM_PERIODO}`)
+  const [edits, setEdits] = useState({})           // { dealer: cuerpo editado }
+  const [cuerpoFin, setCuerpoFin] = useState(null)
+  const [enviadosN, setEnviadosN] = useState(0)    // a cuántos dealers se mandó
+
   const r = vmCierreResumen()
   const v = vmVinResumen()
 
@@ -39,8 +57,26 @@ export default function VariableStepMonthly({ nombre = 'Variable Margin', folio 
     )
   }, [vista, query])
 
-  const mandar = (setter) => {
+  // Dealers que reciben el reporte según la audiencia elegida.
+  const audiencia_dealers = useMemo(() => (
+    audiencia === 'todos' ? vmCierre : vmCierre.filter(c => (audiencia === 'cumplio') === c.cumplio)
+  ), [audiencia])
+
+  const actual = audiencia_dealers[Math.min(idx, audiencia_dealers.length - 1)]
+  const cuerpo = actual ? (edits[actual.dealer] ?? vmCorreoDealer(actual, nombre)) : ''
+
+  const editarCuerpo = (txt) => setEdits(e => ({ ...e, [actual.dealer]: txt }))
+  const abrir = (cual) => {
+    setIdx(0)
+    if (cual === 'finanzas' && cuerpoFin === null) setCuerpoFin(vmCorreoFinanzas(r, v, nombre, folio))
+    setPreview(cual)
+  }
+
+  const confirmarEnvio = () => {
+    const setter = preview === 'dealers' ? setEnvioDealers : setEnvioFinanzas
+    if (preview === 'dealers') setEnviadosN(audiencia_dealers.length)
     setter('enviando')
+    setPreview(null)
     setTimeout(() => setter('enviado'), 1500)
   }
 
@@ -228,9 +264,9 @@ export default function VariableStepMonthly({ nombre = 'Variable Margin', folio 
           </div>
           <div className="mt-4 flex items-center justify-between gap-3">
             {envioDealers === 'enviado'
-              ? <Pill tone="green"><Icon.Check width={13} height={13} /> Enviado a {r.dealers} dealers</Pill>
+              ? <Pill tone="green"><Icon.Check width={13} height={13} /> Enviado a {enviadosN} dealers</Pill>
               : <span className="text-xs text-kia-gray">{r.dealers} destinatarios</span>}
-            <Button variant="danger" onClick={() => mandar(setEnvioDealers)} disabled={envioDealers !== 'idle'}>
+            <Button variant="danger" onClick={() => abrir('dealers')} disabled={envioDealers !== 'idle'}>
               {envioDealers === 'idle' && <><Icon.Mail width={16} height={16} /> Enviar reporte a dealers</>}
               {envioDealers === 'enviando' && <><Spinner /> Enviando…</>}
               {envioDealers === 'enviado' && <><Icon.Check width={16} height={16} /> Reporte enviado</>}
@@ -245,21 +281,25 @@ export default function VariableStepMonthly({ nombre = 'Variable Margin', folio 
             <div className="min-w-0">
               <h3 className="font-bold">Corrida del cálculo final a Finanzas</h3>
               <p className="text-sm text-kia-gray mt-1 leading-relaxed">
-                Cálculo cerrado del periodo con el detalle por dealer y por VIN, listo para posteo y pago en SAP.
+                Base de pago del periodo: los VIN reclamados al incentivo y validados contra la oferta comercial.
               </p>
             </div>
           </div>
           <div className="mt-4 rounded-xl border border-kia-line divide-y divide-slate-100 text-sm">
             <Linea label="Dealers con incentivo" valor={`${r.cumplieron} de ${r.dealers}`} />
-            <Linea label="VIN que califican" valor={`${v.ok} de ${v.total}`} />
+            <Linea label="VIN reclamados al incentivo" valor={String(v.total)} />
+            <Linea label="VIN que califican" valor={`${v.ok} · ${v.rech} rechazados`} />
             <Linea label="Monto a pagar" valor={fmtMXN(v.pago)} destacado />
             <Linea label="Periodo · folio" valor={`${VM_PERIODO} · ${folio}`} />
           </div>
+          <p className="text-[11px] text-kia-gray mt-2.5 leading-snug">
+            El resultado comercial de la red ({r.real.toLocaleString('es-MX')} u vendidas) mide el cumplimiento de metas; la base de pago son solo los VIN reclamados al incentivo.
+          </p>
           <div className="mt-4 flex items-center justify-between gap-3">
             {envioFinanzas === 'enviado'
               ? <Pill tone="green"><Icon.Check width={13} height={13} /> Corrida enviada</Pill>
               : <span className="text-xs text-kia-gray">Destino: Finanzas KIA</span>}
-            <Button variant="danger" onClick={() => mandar(setEnvioFinanzas)} disabled={envioFinanzas !== 'idle'}>
+            <Button variant="danger" onClick={() => abrir('finanzas')} disabled={envioFinanzas !== 'idle'}>
               {envioFinanzas === 'idle' && <><Icon.Mail width={16} height={16} /> Enviar corrida a Finanzas</>}
               {envioFinanzas === 'enviando' && <><Spinner /> Enviando…</>}
               {envioFinanzas === 'enviado' && <><Icon.Check width={16} height={16} /> Corrida enviada</>}
@@ -267,6 +307,117 @@ export default function VariableStepMonthly({ nombre = 'Variable Margin', folio 
           </div>
         </Card>
       </div>
+
+      {/* ---------- Preview del correo antes de enviar ---------- */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-up" onClick={() => setPreview(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+
+            {/* Encabezado */}
+            <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-kia-line">
+              <div className="flex items-center gap-3">
+                <span className="h-10 w-10 rounded-xl bg-gradient-to-br from-kia-black to-kia-red text-white grid place-items-center">
+                  <Icon.Spark width={19} height={19} />
+                </span>
+                <div>
+                  <h3 className="font-bold">
+                    {preview === 'dealers' ? 'Reporte de cierre a dealers' : 'Corrida del cálculo final a Finanzas'}
+                  </h3>
+                  <p className="text-xs text-kia-gray">
+                    Redactado por KIA BRAIN con los datos del periodo · editable antes de enviar
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-slate-400 hover:text-kia-black text-lg leading-none">✕</button>
+            </div>
+
+            <div className="px-6 py-4 overflow-y-auto space-y-3">
+              {/* Destinatarios */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-kia-gray uppercase tracking-wide w-16">Para</span>
+                {preview === 'dealers' ? (
+                  <>
+                    <div className="inline-flex rounded-xl border border-kia-line p-0.5 bg-slate-50">
+                      {AUDIENCIAS.map(a => (
+                        <button key={a.v} onClick={() => { setAudiencia(a.v); setIdx(0) }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${audiencia === a.v ? 'bg-white text-kia-black shadow-sm' : 'text-kia-gray hover:text-kia-black'}`}>
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                    <Pill tone="ink">{audiencia_dealers.length} destinatarios</Pill>
+                  </>
+                ) : (
+                  <Pill tone="ink"><Icon.Database width={13} height={13} /> Finanzas KIA · 1 destinatario</Pill>
+                )}
+              </div>
+
+              {/* Asunto */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-kia-gray uppercase tracking-wide w-16 shrink-0">Asunto</span>
+                <input type="text"
+                  value={preview === 'dealers' ? asunto : asuntoFin}
+                  onChange={e => (preview === 'dealers' ? setAsunto : setAsuntoFin)(e.target.value)}
+                  className="flex-1 rounded-xl border border-kia-line px-3.5 py-2 text-sm focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+              </div>
+
+              {/* Navegación entre dealers */}
+              {preview === 'dealers' && actual && (
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 border border-kia-line px-3.5 py-2.5">
+                  <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-kia-gray hover:text-kia-black disabled:opacity-30 disabled:cursor-not-allowed">
+                    <Icon.Chevron width={13} height={13} className="rotate-180" /> Anterior
+                  </button>
+                  <div className="text-center min-w-0">
+                    <div className="text-sm font-semibold truncate">{actual.dealer}</div>
+                    <div className="text-[11px] text-kia-gray">
+                      {idx + 1} de {audiencia_dealers.length} ·{' '}
+                      <span className={actual.cumplio ? 'text-emerald-600 font-semibold' : 'text-kia-red font-semibold'}>
+                        {actual.cumplio ? '✓ cumplió meta' : `✕ ${actual.dif} u`}
+                      </span>
+                      {edits[actual.dealer] && ' · editado'}
+                    </div>
+                  </div>
+                  <button onClick={() => setIdx(i => Math.min(audiencia_dealers.length - 1, i + 1))} disabled={idx >= audiencia_dealers.length - 1}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-kia-gray hover:text-kia-black disabled:opacity-30 disabled:cursor-not-allowed">
+                    Siguiente <Icon.Chevron width={13} height={13} />
+                  </button>
+                </div>
+              )}
+
+              {/* Cuerpo editable */}
+              <textarea
+                value={preview === 'dealers' ? cuerpo : (cuerpoFin ?? '')}
+                onChange={e => preview === 'dealers' ? editarCuerpo(e.target.value) : setCuerpoFin(e.target.value)}
+                rows={16}
+                className="w-full rounded-xl border border-kia-line px-3.5 py-3 text-sm leading-relaxed font-mono resize-none focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+
+              {preview === 'dealers' && (
+                <p className="text-xs text-kia-gray flex items-start gap-2">
+                  <Icon.Spark width={13} height={13} className="mt-0.5 shrink-0 text-kia-red" />
+                  Cada dealer recibe su versión con sus propios números y su motivo. Navega para revisar cualquiera; los cambios que hagas se conservan por dealer.
+                </p>
+              )}
+            </div>
+
+            {/* Acciones */}
+            <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-kia-line">
+              <span className="text-xs text-kia-gray">
+                {preview === 'dealers'
+                  ? `${Object.keys(edits).length} correo(s) editado(s) manualmente`
+                  : `Folio ${folio}`}
+              </span>
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" onClick={() => setPreview(null)}>Cancelar</Button>
+                <Button variant="danger" onClick={confirmarEnvio} disabled={preview === 'dealers' && audiencia_dealers.length === 0}>
+                  <Icon.Mail width={16} height={16} />
+                  {preview === 'dealers' ? `Enviar a ${audiencia_dealers.length} dealers` : 'Enviar a Finanzas'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ---------- Cierre ---------- */}
       {envioDealers === 'enviado' && envioFinanzas === 'enviado' && (
