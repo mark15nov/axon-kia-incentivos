@@ -39,6 +39,7 @@ export default function VariableStep5ValidacionVin() {
   const [texto, setTexto] = useState('')
   const [notificados, setNotificados] = useState([])
   const [brain, setBrain] = useState('idle') // idle | analizando | listo
+  const [paquete, setPaquete] = useState('idle') // idle | enviando | enviado
 
   const r = vmVinResumen()
   const motivos = vmVinMotivos()
@@ -54,6 +55,12 @@ export default function VariableStep5ValidacionVin() {
     if (brain === 'analizando') return
     setBrain('analizando')
     setTimeout(() => setBrain('listo'), 1500)
+  }
+
+  const mandarPaquete = () => {
+    if (paquete !== 'idle') return
+    setPaquete('enviando')
+    setTimeout(() => setPaquete('enviado'), 1500)
   }
 
   const filtrados = useMemo(() => {
@@ -340,6 +347,30 @@ export default function VariableStep5ValidacionVin() {
               )}
             </tbody>
           </table>
+        </div>
+      </Card>
+
+      {/* ---------- Cierre: paquete a Finanzas ---------- */}
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <h3 className="font-bold flex items-center gap-2">
+              <Icon.Mail width={17} height={17} /> Paquete de validación a Finanzas
+            </h3>
+            <p className="text-xs text-kia-gray mt-1 max-w-xl leading-snug">
+              Se envían los {r.ok} VIN que cumplen ({fmtMXN(r.pago)} a pagar) junto con el soporte documental y el detalle de los {r.rech} rechazos, para su posteo y pago.
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-3">
+            {paquete === 'enviado' && (
+              <Pill tone="green"><Icon.Check width={13} height={13} /> Paquete enviado</Pill>
+            )}
+            <Button variant="danger" onClick={mandarPaquete} disabled={paquete !== 'idle'}>
+              {paquete === 'idle' && <><Icon.Mail width={16} height={16} /> MANDAR PAQUETE A FINANZAS</>}
+              {paquete === 'enviando' && <><span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Enviando…</>}
+              {paquete === 'enviado' && <><Icon.Check width={16} height={16} /> ENVIADO A FINANZAS</>}
+            </Button>
+          </div>
         </div>
       </Card>
 

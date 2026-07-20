@@ -33,7 +33,7 @@ export default function PagoFinanzas({ nombre = 'el incentivo', folio = 'INC-JUN
     <div className="space-y-6">
       <SectionTitle
         kicker="Etapa 3 · Paso 1"
-        title="Finanzas y pago"
+        title="MONTHLY"
         desc="Finanzas descarga los datos de la factura, postea el incentivo y genera el documento de pago en SAP. Con la aprobación final, el pago se ejecuta y los registros se archivan."
         right={<Pill tone={pagado ? 'green' : procesado ? 'blue' : 'gray'}>
           {pagado ? <><Icon.Check width={14} height={14} /> Pago ejecutado</> : procesado ? <><Icon.Clock width={14} height={14} /> Por aprobar</> : 'Pendiente'}

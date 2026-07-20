@@ -22,6 +22,12 @@ export const incentivos = [
     dealers: 6, aclaraciones: 4, estatus: 'activo', flujo: 'variable'
   },
   {
+    id: 'cashback', clave: 'CB', nombre: 'Cashback', icon: 'Cash',
+    desc: 'Bono en efectivo al cliente sobre unidades seleccionadas; KIA subvenciona el monto por VIN durante el periodo.',
+    fuente: 'SAP · Dealers', presupuesto: 1980000, ejecutado: 660000,
+    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'cashback'
+  },
+  {
     id: 'opening', clave: 'OF', nombre: 'Opening Fee', icon: 'Invoice',
     desc: 'La financiera absorbe la comisión por apertura del crédito o emite reembolsos; KIA subvenciona su share.',
     fuente: 'KIA Finance · Inbursa', presupuesto: 1850000, ejecutado: 640000,
@@ -50,12 +56,6 @@ export const incentivos = [
     desc: 'Beneficio de crédito por fidelidad calculado con el monto financiado y la Oferta Comercial, validado contra el pago de Inbursa.',
     fuente: 'SAP · Inbursa', presupuesto: 1560000, ejecutado: 505000,
     dealers: 6, aclaraciones: 2, estatus: 'activo', flujo: 'kiafidelity'
-  },
-  {
-    id: 'cashback', clave: 'CB', nombre: 'Cashback', icon: 'Cash',
-    desc: 'Bono en efectivo al cliente sobre unidades seleccionadas; KIA subvenciona el monto por VIN durante el periodo.',
-    fuente: 'SAP · Dealers', presupuesto: 1980000, ejecutado: 660000,
-    dealers: 6, aclaraciones: 3, estatus: 'activo', flujo: 'cashback'
   },
   {
     id: 'feria', clave: 'FERIA', nombre: 'Feria de Crédito', icon: 'Percent',

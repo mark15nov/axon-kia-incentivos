@@ -3,8 +3,24 @@ import { Card, SectionTitle, Kpi, Pill, ProgressBar } from '../../components/ui.
 import { Icon } from '../../components/icons.jsx'
 import {
   vmForecast, vmForecastDealer, vmForecastResumen, vmBrainMetodologia,
-  UMBRAL_META
+  vmForecastGrupos, vmPlanTrabajo, UMBRAL_META
 } from '../../data/variableMargin.js'
+
+// Paleta por grupo de la segmentación (semáforo de cumplimiento).
+const GRUPO_TONE = {
+  green: {
+    card: 'border-emerald-200 bg-emerald-50/60', cardOn: 'ring-2 ring-emerald-500 border-emerald-300',
+    dot: 'bg-emerald-500', text: 'text-emerald-700', chip: 'bg-emerald-500 text-white', bar: 'green'
+  },
+  amber: {
+    card: 'border-amber-200 bg-amber-50/60', cardOn: 'ring-2 ring-amber-500 border-amber-300',
+    dot: 'bg-amber-500', text: 'text-amber-700', chip: 'bg-amber-500 text-white', bar: 'red'
+  },
+  red: {
+    card: 'border-red-200 bg-red-50/60', cardOn: 'ring-2 ring-kia-red border-red-300',
+    dot: 'bg-kia-red', text: 'text-kia-red', chip: 'bg-kia-red text-white', bar: 'red'
+  }
+}
 
 const TEND = {
   up: { label: 'Al alza', cls: 'text-emerald-600', arrow: '▲' },
@@ -24,7 +40,10 @@ export default function VariableStep2Forecast() {
   const [expandido, setExpandido] = useState(null)
   const [filtro, setFiltro] = useState('all')
   const [query, setQuery] = useState('')
+  const [grupoSel, setGrupoSel] = useState('posibles')
+  const [planAbierto, setPlanAbierto] = useState(null)
   const r = vmForecastResumen()
+  const grupos = useMemo(() => vmForecastGrupos(), [])
   const listo = estado === 'listo'
 
   const correr = () => {
@@ -54,7 +73,7 @@ export default function VariableStep2Forecast() {
   return (
     <div className="space-y-6">
       <SectionTitle
-        kicker="Paso 2 · Forecast"
+        kicker="Paso 1 · Forecast"
         title="Forecast de cumplimiento por dealer"
         desc="Sobre el histórico de los últimos 24 meses se estima, por dealer y por modelo, cuántas unidades cumplirán la meta del periodo en toda la red KIA México. KIA BRAIN corre la estimación y explica cómo llegó a cada cifra."
         right={<Pill tone="ink"><Icon.Database width={14} height={14} /> Histórico 24 meses</Pill>}
@@ -98,7 +117,8 @@ export default function VariableStep2Forecast() {
               <p className="text-sm leading-relaxed">
                 Con la oferta definida estimo <strong className="tabular">{r.estimado.toLocaleString('es-MX')} unidades</strong> en la red (vs {r.meta.toLocaleString('es-MX')} de meta, {r.delta >= 0 ? '+' : ''}{r.delta}).
                 <strong> {r.dealersMeta} de {r.dealers} dealers</strong> superan su meta con probabilidad ≥ {UMBRAL_META}%, y {r.paresMeta} de {r.pares} pares dealer·modelo quedan en meta.
-                Los dealers con tendencia a la baja se marcan para seguimiento comercial.
+                Segmenté la red en <strong className="text-emerald-600">{grupos.logran.n} que lo van a lograr</strong>, <strong className="text-amber-600">{grupos.posibles.n} con posibilidades</strong> (les faltan {grupos.posibles.brecha} u)
+                y <strong className="text-kia-red">{grupos.noLogran.n} que no llegan</strong> (brecha de {grupos.noLogran.brecha} u), con plan de trabajo para cada uno.
               </p>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -120,6 +140,166 @@ export default function VariableStep2Forecast() {
         <Kpi label="Pares en meta" value={listo ? `${r.paresMeta} / ${r.pares}` : '—'} sub="Dealer × modelo" />
         <Kpi label="Confianza del modelo" value={listo ? `${r.confianza}%` : '—'} sub="Histórico 24 meses" />
       </div>
+
+      {/* ---------- Segmentación de cumplimiento ---------- */}
+      {listo && (
+        <div className="space-y-4 animate-fade-up">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="font-bold flex items-center gap-2">
+                <Icon.Brain width={18} height={18} className="text-kia-red" /> Segmentación de la red
+              </h3>
+              <p className="text-xs text-kia-gray mt-0.5">
+                KIA BRAIN parte los {r.dealers} dealers en tres grupos de decisión y genera el plan de trabajo de cada uno.
+              </p>
+            </div>
+            <Pill tone="ink"><Icon.Database width={14} height={14} /> 24 meses de histórico</Pill>
+          </div>
+
+          {/* Semáforo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {['logran', 'posibles', 'noLogran'].map(k => {
+              const g = grupos[k]
+              const tone = GRUPO_TONE[g.tone]
+              const on = grupoSel === k
+              return (
+                <button key={k} onClick={() => { setGrupoSel(k); setPlanAbierto(null) }}
+                  className={`text-left rounded-2xl border p-4 transition-all ${tone.card} ${on ? tone.cardOn : 'hover:border-slate-300'}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-full ${tone.dot}`} />
+                    <span className="text-sm font-bold">{g.label}</span>
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className={`text-3xl font-bold tabular ${tone.text}`}>{g.n}</span>
+                    <span className="text-xs text-kia-gray">dealers · {g.pct}% de la red</span>
+                  </div>
+                  <p className="text-[11px] text-kia-gray mt-1.5 leading-snug">{g.desc}</p>
+                  <div className="mt-3 pt-3 border-t border-black/5 flex items-center justify-between text-xs">
+                    <span className="text-kia-gray">{g.criterio}</span>
+                    <span className={`font-bold tabular ${tone.text}`}>
+                      {k === 'logran' ? `+${g.colchon} u sobre meta` : `faltan ${g.brecha} u`}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Detalle del grupo seleccionado */}
+          <Card className="overflow-hidden">
+            <div className="px-5 py-4 border-b border-kia-line flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${GRUPO_TONE[grupos[grupoSel].tone].dot}`} />
+                <h4 className="font-bold">{grupos[grupoSel].label}</h4>
+                <Pill tone="gray">{grupos[grupoSel].n} dealers</Pill>
+              </div>
+              <div className="text-xs text-kia-gray">
+                Meta <strong className="tabular text-kia-black">{grupos[grupoSel].meta.toLocaleString('es-MX')}</strong> u ·
+                Estimado <strong className="tabular text-kia-black"> {grupos[grupoSel].estimado.toLocaleString('es-MX')}</strong> u
+                {grupoSel !== 'logran' && <> · Extra requerido <strong className="tabular text-kia-red"> {grupos[grupoSel].brecha}</strong> u</>}
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto">
+              {grupos[grupoSel].dealers.map(d => {
+                const p = d.perfil
+                const tone = GRUPO_TONE[grupos[grupoSel].tone]
+                const abierto = planAbierto === d.dealer
+                const plan = abierto ? vmPlanTrabajo(d) : []
+                return (
+                  <div key={d.dealer}>
+                    <button
+                      onClick={() => grupoSel !== 'logran' && setPlanAbierto(abierto ? null : d.dealer)}
+                      className={`w-full text-left px-5 py-3.5 flex items-center gap-4 ${grupoSel !== 'logran' ? 'hover:bg-slate-50/70 cursor-pointer' : 'cursor-default'} ${abierto ? 'bg-slate-50/70' : ''}`}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          {grupoSel !== 'logran' && (
+                            <Icon.Chevron width={13} height={13} className={`text-slate-400 transition-transform ${abierto ? 'rotate-90' : ''}`} />
+                          )}
+                          <span className="font-semibold text-sm truncate">{d.dealer}</span>
+                          <span className="text-[11px] text-kia-gray">{d.zona}</span>
+                        </div>
+                        <div className="text-[11px] text-kia-gray mt-0.5 tabular">
+                          meta {p.meta} u · estimado {p.estimado} u · {TEND[d.tendencia].label.toLowerCase()}
+                        </div>
+                      </div>
+
+                      {/* Unidades extra necesarias */}
+                      {grupoSel === 'logran' ? (
+                        <span className="shrink-0 text-xs font-bold text-emerald-600 tabular">+{p.colchon} u de colchón</span>
+                      ) : (
+                        <div className="shrink-0 text-right">
+                          <div className={`text-lg font-bold tabular leading-none ${tone.text}`}>+{p.brecha} u</div>
+                          <div className="text-[10px] text-kia-gray mt-0.5">{p.ritmoNecesario} u/semana</div>
+                        </div>
+                      )}
+
+                      <div className="shrink-0 w-28 flex items-center gap-2">
+                        <div className="flex-1"><ProgressBar value={p.prob} tone={tone.bar} /></div>
+                        <span className={`text-xs tabular font-bold w-8 text-right ${tone.text}`}>{p.prob}%</span>
+                      </div>
+                    </button>
+
+                    {/* Plan de trabajo generado por la IA */}
+                    {abierto && (
+                      <div className="px-5 pb-5 bg-slate-50/70 animate-fade-up">
+                        <div className="rounded-xl bg-white border border-kia-line p-4">
+                          <div className="flex items-start gap-2.5 mb-3">
+                            <span className="h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br from-kia-black to-kia-red text-white grid place-items-center">
+                              <Icon.Spark width={14} height={14} />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-kia-red uppercase tracking-wide">
+                                KIA BRAIN · plan de trabajo
+                              </div>
+                              <p className="text-sm mt-1 leading-relaxed">
+                                {d.dealer} necesita <strong className="text-kia-red">{p.brecha} unidades extra</strong> ({p.ritmoNecesario} por semana) para
+                                asegurar sus {p.meta} u de meta. El pronóstico queda corto en <strong>{p.modelosCortos}</strong> de {d.modelos.length} modelos;
+                                el foco es <strong>{p.modeloFoco}</strong>.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            {plan.map((a, i) => (
+                              <div key={i} className="flex items-start gap-3 rounded-lg border border-kia-line px-3 py-2.5">
+                                <span className="mt-0.5 h-5 w-5 shrink-0 rounded-md bg-kia-black text-white grid place-items-center text-[10px] font-bold">{i + 1}</span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm font-semibold">{a.titulo}</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-kia-gray px-1.5 py-0.5 rounded">{a.plazo}</span>
+                                  </div>
+                                  <p className="text-xs text-kia-gray mt-1 leading-relaxed">{a.detalle}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Modelos a empujar */}
+                          {p.cortos.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-kia-line">
+                              <div className="text-[11px] font-semibold text-kia-gray uppercase tracking-wide mb-2">Modelos bajo meta</div>
+                              <div className="flex flex-wrap gap-2">
+                                {p.cortos.map(m => (
+                                  <span key={m.modelo} className="inline-flex items-center gap-1.5 rounded-lg border border-kia-line px-2.5 py-1.5 text-xs">
+                                    <span className="font-semibold">{m.modelo}</span>
+                                    <span className="text-kia-red tabular font-bold">−{m.faltan} u</span>
+                                    <span className="text-kia-gray tabular">({m.prob}%)</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* ---------- Forecast por dealer ---------- */}
       <Card className="overflow-hidden">

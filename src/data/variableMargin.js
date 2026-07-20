@@ -246,6 +246,135 @@ export function vmForecastResumen() {
   }
 }
 
+// ============================================================
+//  SEGMENTACIÓN DE CUMPLIMIENTO · el "cerebro" del forecast
+//  Sobre la probabilidad estimada con 24 meses de histórico,
+//  KIA BRAIN parte la red en tres grupos de decisión:
+//    logran    → alta probabilidad, solo seguimiento
+//    posibles  → alcanzable con empuje; se calcula cuántas
+//                unidades extra faltan y un plan de trabajo
+//    noLogran  → brecha estructural; plan de recuperación
+// ============================================================
+export const VM_CORTE_ALTO = 78   // prob >= → van a lograrlo
+export const VM_CORTE_MEDIO = 55  // prob >= → tienen posibilidades
+
+export const VM_GRUPOS = {
+  logran: {
+    key: 'logran', label: 'Lo van a lograr', corto: 'Logran',
+    desc: 'Mayores posibilidades de cerrar la meta del periodo.',
+    tone: 'green', criterio: `Probabilidad ≥ ${VM_CORTE_ALTO}%`
+  },
+  posibles: {
+    key: 'posibles', label: 'Tienen posibilidades', corto: 'Posibles',
+    desc: 'Alcanzan la meta con empuje comercial dirigido.',
+    tone: 'amber', criterio: `Probabilidad ${VM_CORTE_MEDIO}–${VM_CORTE_ALTO - 1}%`
+  },
+  noLogran: {
+    key: 'noLogran', label: 'No lo van a lograr', corto: 'No logran',
+    desc: 'Brecha estructural contra la meta; requieren plan de recuperación.',
+    tone: 'red', criterio: `Probabilidad < ${VM_CORTE_MEDIO}%`
+  }
+}
+
+// Acciones que KIA BRAIN propone según el grupo. Se eligen de forma
+// determinista por dealer para que la maqueta sea estable entre corridas.
+const VM_ACCIONES_POSIBLES = [
+  { titulo: 'Empujar el modelo con mayor brecha', plazo: 'Semana 1–2', detalle: d => `Concentrar piso y prospección en ${d.modeloFoco}: es donde el pronóstico queda más corto (${d.faltanFoco} u bajo meta) y donde el dealer tiene mejor histórico de conversión.` },
+  { titulo: 'Reactivar prospectos no cerrados', plazo: 'Semana 1', detalle: d => `Recontactar la cartera de los últimos 90 días sin cierre. En el histórico de 24 meses este dealer recupera ~${d.recupera}% de esos prospectos cuando hay incentivo vigente.` },
+  { titulo: 'Comunicar el incentivo a piso de venta', plazo: 'Semana 1', detalle: () => 'Sesión con el equipo de ventas para aterrizar el bono por unidad y el corte del periodo; en la red, los dealers con sesión formal cierran +6% sobre los que no la hacen.' },
+  { titulo: 'Priorizar inventario de rotación rápida', plazo: 'Semana 2', detalle: d => `Reordenar el piso hacia ${d.modeloFoco} y liberar unidades con más de 60 días; el objetivo es sostener ${d.ritmoNecesario} u/semana en lo que resta del periodo.` },
+  { titulo: 'Alinear con la financiera', plazo: 'Semana 2–3', detalle: () => 'Empatar la oferta con Opening Fee y Low Rate vigentes para bajar el enganche efectivo; históricamente sube la tasa de cierre en el segmento de entrada.' }
+]
+
+const VM_ACCIONES_NO_LOGRAN = [
+  { titulo: 'Revisión de causa raíz con el dealer', plazo: 'Semana 1', detalle: d => `Sesión con dirección del dealer: la brecha es de ${d.brecha} u (${d.pctBrecha}% bajo meta) y la tendencia de los últimos 6 meses es ${d.tendLabel.toLowerCase()}. Hay que validar si es demanda, inventario o fuerza de venta.` },
+  { titulo: 'Auditoría de inventario y mezcla', plazo: 'Semana 1–2', detalle: d => `Contrastar el piso actual contra la mezcla que sí rota en ${d.zona}. El pronóstico queda corto en ${d.modelosCortos} de 4 modelos de la oferta.` },
+  { titulo: 'Meta ajustada y recuperación parcial', plazo: 'Semana 2', detalle: d => `La meta completa no es alcanzable en el periodo. Proponer objetivo puente de ${d.metaPuente} u para asegurar el tramo pagable y no perder el periodo completo.` },
+  { titulo: 'Refuerzo de fuerza de venta', plazo: 'Semana 2–3', detalle: () => 'Acompañamiento de zona en piso y capacitación de cierre; en casos comparables de la red recupera entre 8 y 12% del volumen faltante.' },
+  { titulo: 'Escalar a seguimiento comercial', plazo: 'Cierre', detalle: () => 'Marcar el dealer para revisión en el comité de incentivos: riesgo de no ejecutar el presupuesto asignado del periodo.' }
+]
+
+const VM_TEND_LABEL = { up: 'Al alza', flat: 'Estable', down: 'A la baja' }
+
+// Perfil completo de un dealer para la segmentación: grupo, brecha
+// contra meta, unidades extra por semana y modelos a empujar.
+export function vmPerfilDealer(d) {
+  const f = vmForecastDealer(d)
+  const grupo = f.prob >= VM_CORTE_ALTO ? 'logran' : f.prob >= VM_CORTE_MEDIO ? 'posibles' : 'noLogran'
+  const deficit = Math.max(0, f.meta - f.estimado)
+  const colchon = Math.max(0, f.estimado - f.meta)
+
+  // Unidades extra para asegurar la meta. El modelo estima
+  // prob ≈ 66 + (estimado/meta - 1) × 200, así que subir la
+  // probabilidad hasta el corte alto exige meta × Δprob / 200
+  // unidades adicionales sobre el pronóstico. Nunca menos que
+  // el déficit puro contra la meta.
+  const porProb = Math.ceil((f.meta * Math.max(0, VM_CORTE_ALTO - f.prob)) / 200)
+  const brecha = grupo === 'logran' ? 0 : Math.max(deficit, porProb)
+
+  // Modelos donde el pronóstico queda bajo meta, de mayor a menor faltante.
+  const cortos = d.modelos
+    .map(m => ({ ...m, faltan: Math.max(0, m.meta - m.estimado) }))
+    .filter(m => m.faltan > 0)
+    .sort((a, b) => b.faltan - a.faltan)
+  // Si ningún modelo queda bajo meta, el foco es el de menor
+  // probabilidad: es el que sostiene menos el pronóstico.
+  const foco = cortos[0] ?? [...d.modelos].sort((a, b) => a.prob - b.prob)[0]
+
+  return {
+    ...f,
+    grupo,
+    brecha,
+    deficit,
+    colchon,
+    cortos,
+    modeloFoco: foco.modelo,
+    faltanFoco: Math.max(Math.ceil(brecha / 2), foco.meta - foco.estimado),
+    modelosCortos: cortos.length,
+    pctBrecha: f.meta ? Math.round((brecha / f.meta) * 100) : 0,
+    ritmoNecesario: Math.max(1, Math.ceil(brecha / 4)),   // 4 semanas de periodo
+    metaPuente: Math.round(f.meta - brecha * 0.55),
+    recupera: 18 + (d.dealer.length % 9),
+    tendLabel: VM_TEND_LABEL[d.tendencia],
+    zona: d.zona
+  }
+}
+
+// Plan de trabajo generado por KIA BRAIN. 3 acciones por dealer,
+// elegidas de forma determinista a partir del nombre del dealer.
+export function vmPlanTrabajo(d) {
+  const p = vmPerfilDealer(d)
+  if (p.grupo === 'logran') return []
+  const pool = p.grupo === 'posibles' ? VM_ACCIONES_POSIBLES : VM_ACCIONES_NO_LOGRAN
+  const seed = d.dealer.length + d.zona.length
+  return [0, 1, 2].map(i => {
+    const a = pool[(seed + i * 2) % pool.length]
+    return { titulo: a.titulo, plazo: a.plazo, detalle: a.detalle(p) }
+  })
+}
+
+// Red partida en los tres grupos, con totales por grupo.
+export function vmForecastGrupos() {
+  const out = {
+    logran: { ...VM_GRUPOS.logran, dealers: [], meta: 0, estimado: 0, brecha: 0, colchon: 0 },
+    posibles: { ...VM_GRUPOS.posibles, dealers: [], meta: 0, estimado: 0, brecha: 0, colchon: 0 },
+    noLogran: { ...VM_GRUPOS.noLogran, dealers: [], meta: 0, estimado: 0, brecha: 0, colchon: 0 }
+  }
+  for (const d of vmForecast) {
+    const p = vmPerfilDealer(d)
+    const g = out[p.grupo]
+    g.dealers.push({ ...d, perfil: p })
+    g.meta += p.meta; g.estimado += p.estimado
+    g.brecha += p.brecha; g.colchon += p.colchon
+  }
+  for (const k of Object.keys(out)) {
+    out[k].n = out[k].dealers.length
+    out[k].pct = Math.round((out[k].n / vmForecast.length) * 100)
+    out[k].dealers.sort((a, b) => b.perfil.prob - a.perfil.prob)
+  }
+  return out
+}
+
 // --- Desglose por dealer ---
 // asignado suma = 765,000 · ejecutado suma = 300,000.
 // estatus 'ok' → soporte conciliado; 'aclaracion' → diferencia contra SAP.
@@ -257,6 +386,97 @@ export const vmDealers = [
   { dealer: 'KIA Querétaro', zona: 'Bajío', asignado: 108000, ejecutado: 38000, estatus: 'aclaracion' },
   { dealer: 'KIA Mérida', zona: 'Sureste', asignado: 94000, ejecutado: 25000, estatus: 'aclaracion' }
 ]
+
+// ============================================================
+//  ETAPA 3 · MONTHLY · cierre del periodo
+//  Resultado real contra la meta y contra lo que pronosticó
+//  KIA BRAIN en el paso de forecast. Cierra el ciclo: quién
+//  cumplió, quién no y por qué.
+// ============================================================
+
+// Causa del incumplimiento cuando el dealer no alcanza la meta.
+const VM_CAUSAS_FALLA = [
+  'Inventario insuficiente del modelo foco durante la segunda quincena.',
+  'Tráfico de piso a la baja frente al promedio de 24 meses.',
+  'Entregas diferidas al siguiente corte por disponibilidad de unidad.',
+  'No se ejecutó el plan de trabajo propuesto al inicio del periodo.',
+  'Documentación de VIN rechazada en validación y no subsanada a tiempo.'
+]
+
+const VM_CAUSAS_LOGRO = [
+  'Ejecutó el plan de trabajo y cerró el modelo foco.',
+  'Recuperó cartera de prospectos de los 90 días previos.',
+  'Sostuvo inventario y mezcla SUV todo el periodo.',
+  'Empuje de piso en la última quincena del corte.'
+]
+
+// Cierre real por dealer. Determinista: el resultado se desvía del
+// pronóstico según el grupo en que KIA BRAIN clasificó al dealer.
+export function vmCierreDealer(d, idx) {
+  const p = vmPerfilDealer(d)
+  const factor = p.grupo === 'logran' ? 1.03 : p.grupo === 'posibles' ? 0.985 : 0.93
+  const jit = (((idx * 17 + d.dealer.length * 5) % 9) - 4) / 100
+  const real = Math.max(0, Math.round(p.estimado * (factor + jit)))
+  const cumplio = real >= p.meta
+  const dif = real - p.meta
+  const pctMeta = p.meta ? Math.round((real / p.meta) * 100) : 0
+
+  // Reparto del resultado por modelo, para saber dónde quedó la brecha.
+  const ratio = p.estimado ? real / p.estimado : 0
+  const modelos = d.modelos.map(m => {
+    const realM = Math.round(m.estimado * ratio)
+    return { ...m, real: realM, dif: realM - m.meta }
+  })
+  const peor = [...modelos].sort((a, b) => a.dif - b.dif)[0]
+  const mejor = [...modelos].sort((a, b) => b.dif - a.dif)[0]
+
+  // KIA BRAIN esperaba que cumpliera si su probabilidad superaba el umbral.
+  const esperaba = p.prob >= UMBRAL_META
+  const acierto = esperaba === cumplio
+
+  const seed = idx + d.dealer.length
+  const motivo = cumplio
+    ? (dif > p.meta * 0.05
+        ? `Sobrecumplió por ${dif} u. ${mejor.modelo} cerró ${mejor.dif >= 0 ? '+' : ''}${mejor.dif} u contra su meta.`
+        : `${dif === 0 ? 'Cerró exactamente en meta' : `Cerró la meta con ${dif} u de margen`}. ${VM_CAUSAS_LOGRO[seed % VM_CAUSAS_LOGRO.length]}`)
+    : `Quedó ${Math.abs(dif)} u por debajo de meta. El faltante se concentra en ${peor.modelo} (${peor.dif} u). ${VM_CAUSAS_FALLA[seed % VM_CAUSAS_FALLA.length]}`
+
+  return {
+    dealer: d.dealer, zona: d.zona, tendencia: d.tendencia,
+    meta: p.meta, estimado: p.estimado, real, cumplio, dif, pctMeta,
+    prob: p.prob, grupo: p.grupo, esperaba, acierto, motivo,
+    modelos, modeloPeor: peor.modelo, modeloMejor: mejor.modelo
+  }
+}
+
+export const vmCierre = vmForecast.map((d, i) => vmCierreDealer(d, i))
+
+// Resumen del cierre + precisión del pronóstico de KIA BRAIN.
+export function vmCierreResumen() {
+  const cumplieron = vmCierre.filter(c => c.cumplio)
+  const fallaron = vmCierre.filter(c => !c.cumplio)
+  const meta = vmCierre.reduce((a, c) => a + c.meta, 0)
+  const real = vmCierre.reduce((a, c) => a + c.real, 0)
+  const aciertos = vmCierre.filter(c => c.acierto).length
+
+  // Cumplimiento real desglosado por el grupo que predijo el forecast.
+  const porGrupo = {}
+  for (const k of ['logran', 'posibles', 'noLogran']) {
+    const del = vmCierre.filter(c => c.grupo === k)
+    porGrupo[k] = { n: del.length, cumplieron: del.filter(c => c.cumplio).length }
+  }
+
+  return {
+    dealers: vmCierre.length,
+    cumplieron: cumplieron.length,
+    fallaron: fallaron.length,
+    pctDealers: Math.round((cumplieron.length / vmCierre.length) * 100),
+    meta, real, dif: real - meta,
+    pctRed: Math.round((real / meta) * 100),
+    precision: Math.round((aciertos / vmCierre.length) * 100),
+    porGrupo
+  }
+}
 
 // --- Aclaraciones abiertas (diferencias soporte vs SAP) ---
 export const vmAclaraciones = [

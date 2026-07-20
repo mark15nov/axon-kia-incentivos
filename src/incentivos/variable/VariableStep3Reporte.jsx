@@ -59,7 +59,7 @@ export default function VariableStep3Reporte() {
   return (
     <div className="space-y-6">
       <SectionTitle
-        kicker="Paso 3 · Validación"
+        kicker="Paso 2 · Validación"
         title="Reporte a Finanzas"
         desc="Consolidado de la oferta comercial y el forecast del periodo. Revisa todas las variables; si todo está correcto, envía el reporte a Finanzas para su validación."
         right={<Pill tone={enviado ? 'blue' : todoOk ? 'green' : 'amber'}>
