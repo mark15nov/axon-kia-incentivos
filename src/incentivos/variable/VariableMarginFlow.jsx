@@ -5,13 +5,14 @@ import { Button } from '../../components/ui.jsx'
 import { VM_PERIODO } from '../../data/variableMargin.js'
 
 import VariableStep2 from './VariableStep2Forecast.jsx'
+import VariableResultados from './VariableStepResultados.jsx'
 import VariableStep3 from './VariableStep3Reporte.jsx'
 import VariableStep4 from './VariableStep4RecepcionVin.jsx'
 import VariableStep5 from './VariableStep5ValidacionVin.jsx'
 import VariableStep6 from './VariableStepPagoFinanzas.jsx'
 
 const ETAPAS = {
-  1: 'Definición del incentivo',
+  1: 'Definición y seguimiento',
   2: 'Facturación y validación',
   3: 'MONTHLY'
 }
@@ -23,11 +24,12 @@ const SUBTITULO = {
 }
 
 const STEPS = [
-  { n: 1, etapa: 1, p: 1, key: 'forecast', titulo: 'Forecast por dealer', fuente: 'Histórico 24 meses · KIA BRAIN', icon: Icon.Trending, Comp: VariableStep2 },
-  { n: 2, etapa: 1, p: 2, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'Revisión y validación', icon: Icon.Mail, Comp: VariableStep3 },
-  { n: 3, etapa: 2, p: 1, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
-  { n: 4, etapa: 2, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
-  { n: 5, etapa: 3, p: 1, key: 'pago', titulo: 'MONTHLY', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: VariableStep6 }
+  { n: 1, etapa: 1, p: 1, key: 'forecast', titulo: 'Forecast por razón social', fuente: 'Histórico 24 meses · KIA BRAIN', icon: Icon.Trending, Comp: VariableStep2 },
+  { n: 2, etapa: 1, p: 2, key: 'resultados', titulo: 'Resultados', fuente: 'Corte del periodo en curso', icon: Icon.Grid, Comp: VariableResultados },
+  { n: 3, etapa: 1, p: 3, key: 'reporte', titulo: 'Reporte a Finanzas', fuente: 'Revisión y validación', icon: Icon.Mail, Comp: VariableStep3 },
+  { n: 4, etapa: 2, p: 1, key: 'vin', titulo: 'Recepción de VIN', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
+  { n: 5, etapa: 2, p: 2, key: 'valid', titulo: 'Validación de VIN', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
+  { n: 6, etapa: 3, p: 1, key: 'pago', titulo: 'MONTHLY', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: VariableStep6 }
 ]
 
 export default function VariableMarginFlow({ onBack, incentivo }) {

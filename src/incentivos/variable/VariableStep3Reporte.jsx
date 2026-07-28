@@ -14,9 +14,14 @@ const TONE = {
 
 const ALL_VARS = vmPilares.flatMap(p => p.variables.map(v => ({ ...v, pilar: p.id, tone: p.tone })))
 
+// Supuestos del business case (mismos de la oferta comercial).
+const PRECIO_UNIDAD = 420000    // Dealer Basic Price promedio por unidad
+const MARGEN_UNIDAD = 0.085     // margen neto por unidad de la variable m_neto
+
 export default function VariableStep3Reporte() {
   const [confirmado, setConfirmado] = useState(false)
   const [estado, setEstado] = useState('idle') // idle | enviando | enviado
+  const [bc, setBc] = useState('idle')         // idle | generando | listo
 
   const activos = ALL_VARS.filter(v => vmActivosDefault.includes(v.id))
   const presupuesto = activos.reduce((a, v) => a + v.bolsa, 0)
@@ -36,8 +41,16 @@ export default function VariableStep3Reporte() {
   // Provisión contable: 1.10% del Dealer Basic Price (S04). Base estimada a
   // partir de las unidades del forecast y un precio base promedio por unidad.
   const TASA_PROVISION = 0.011
-  const dealerBasicPrice = r.estimado * 420000
+  const dealerBasicPrice = r.estimado * PRECIO_UNIDAD
   const provision = Math.round(dealerBasicPrice * TASA_PROVISION)
+
+  // Business case: las unidades que el forecast pone por encima de la meta
+  // se valoran a margen bruto y se contrastan contra la bolsa de la oferta.
+  const uIncrementales = Math.max(0, r.delta)
+  const ingresoIncremental = uIncrementales * PRECIO_UNIDAD
+  const margenIncremental = Math.round(ingresoIncremental * MARGEN_UNIDAD)
+  const costoUnidad = uIncrementales ? Math.round(presupuesto / uIncrementales) : 0
+  const roi = presupuesto ? margenIncremental / presupuesto : 0
 
   // Checklist de validación (todo verde → listo para envío).
   const checklist = [
@@ -54,12 +67,18 @@ export default function VariableStep3Reporte() {
     setTimeout(() => setEstado('enviado'), 1300)
   }
 
+  const generarBc = () => {
+    if (bc === 'generando') return
+    setBc('generando')
+    setTimeout(() => setBc('listo'), 1400)
+  }
+
   const enviado = estado === 'enviado'
 
   return (
     <div className="space-y-6">
       <SectionTitle
-        kicker="Paso 2 · Validación"
+        kicker="Paso 3 · Validación"
         title="Reporte a Finanzas"
         desc="Consolidado de la oferta comercial y el forecast del periodo. Revisa todas las variables; si todo está correcto, envía el reporte a Finanzas para su validación."
         right={<Pill tone={enviado ? 'blue' : todoOk ? 'green' : 'amber'}>
@@ -253,6 +272,82 @@ export default function VariableStep3Reporte() {
             <Button variant="ghost" className="shrink-0 ml-auto" onClick={() => { setEstado('idle'); setConfirmado(false) }}>
               <Icon.Refresh width={15} height={15} /> Deshacer envío
             </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Business case del incentivo */}
+      {bc !== 'listo' ? (
+        <Card className="p-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="h-11 w-11 shrink-0 rounded-xl bg-kia-black text-white grid place-items-center"><Icon.Briefcase width={20} height={20} /></span>
+              <div>
+                <h3 className="font-bold">Generar business case</h3>
+                <p className="text-sm text-kia-gray mt-0.5 max-w-xl leading-snug">
+                  KIA BRAIN arma el caso de negocio del incentivo del periodo {VM_PERIODO}: inversión de la oferta, unidades incrementales del forecast, margen bruto que generan y retorno sobre la bolsa asignada.
+                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <Pill tone="gray">Precio base {fmtMXN(PRECIO_UNIDAD)}/u</Pill>
+                  <Pill tone="gray">Margen {(MARGEN_UNIDAD * 100).toFixed(1)}%</Pill>
+                  <Pill tone="gray">Incremental = estimado − meta</Pill>
+                </div>
+              </div>
+            </div>
+            <Button variant="danger" className="shrink-0 px-6 py-3 text-base"
+              disabled={bc === 'generando'}
+              onClick={generarBc}>
+              {bc === 'generando'
+                ? <><Spinner /> Generando…</>
+                : <><Icon.Briefcase width={18} height={18} /> Generar business case</>}
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-5 animate-fade-up">
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="h-10 w-10 shrink-0 rounded-xl bg-kia-black text-white grid place-items-center"><Icon.Briefcase width={19} height={19} /></span>
+              <div className="min-w-0">
+                <h3 className="font-bold">Business case · {VM_PERIODO}</h3>
+                <p className="text-sm text-kia-gray mt-0.5">Retorno estimado del incentivo sobre las unidades incrementales del forecast</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Pill tone={roi >= 1 ? 'green' : 'amber'}><Icon.Trending width={13} height={13} /> ROI {roi.toFixed(1)}x</Pill>
+              <Button variant="ghost" className="shrink-0" onClick={() => setBc('idle')}>
+                <Icon.Refresh width={15} height={15} /> Regenerar
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
+              <div className="text-xs text-kia-gray">Inversión del incentivo</div>
+              <div className="text-xl font-bold tabular mt-0.5">{fmtMXN(presupuesto)}</div>
+              <div className="text-[11px] text-kia-gray mt-0.5">{activos.length} variables de la oferta</div>
+            </div>
+            <div className="rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
+              <div className="text-xs text-kia-gray">Unidades incrementales</div>
+              <div className="text-xl font-bold tabular mt-0.5">+{uIncrementales.toLocaleString('es-MX')} u</div>
+              <div className="text-[11px] text-kia-gray mt-0.5">{fmtMXN(costoUnidad)} de costo por unidad</div>
+            </div>
+            <div className="rounded-xl border border-kia-line bg-slate-50/60 px-4 py-3.5">
+              <div className="text-xs text-kia-gray">Margen bruto incremental</div>
+              <div className="text-xl font-bold tabular mt-0.5">{fmtMXN(margenIncremental)}</div>
+              <div className="text-[11px] text-kia-gray mt-0.5">{fmtMXN(ingresoIncremental)} de ingreso</div>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-3.5">
+              <div className="text-xs text-emerald-700/80">Retorno de la inversión</div>
+              <div className="text-xl font-bold tabular mt-0.5 text-emerald-700">{roi.toFixed(1)}x</div>
+              <div className="text-[11px] text-emerald-700/80 mt-0.5">{fmtMXN(margenIncremental - presupuesto)} de beneficio neto</div>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-kia-line flex items-start gap-2.5 text-[11px] text-kia-gray leading-relaxed">
+            <Icon.Brain width={14} height={14} className="mt-0.5 shrink-0 text-kia-red" />
+            <p>
+              Supuestos: las {uIncrementales} u que el forecast de KIA BRAIN pone por encima de la meta de la red se valoran a un Dealer Basic Price de {fmtMXN(PRECIO_UNIDAD)} por unidad
+              y un margen neto de {(MARGEN_UNIDAD * 100).toFixed(1)}%. La inversión es la bolsa de las variables activas de la oferta; la provisión contable del periodo ({fmtMXN(provision)}) se registra aparte.
+            </p>
           </div>
         </Card>
       )}
