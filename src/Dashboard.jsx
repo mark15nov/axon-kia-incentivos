@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Icon } from './components/icons.jsx'
 import kiaLogo from './assets/kia-logo.png'
 import { Card, Pill, Button } from './components/ui.jsx'
-import { incentivos, ESTATUS_INCENTIVO, periodoActivo } from './data/incentivos.js'
+import { incentivos, ESTATUS_INCENTIVO, periodoActivo, esActivo } from './data/incentivos.js'
 import { fmtMXN } from './data/mockData.js'
-import { kpisIncentivo, consolidadoKpis, zonas, zonaResumen, alertas } from './data/dashboard.js'
+import { kpisIncentivo, consolidadoKpis, zonasActivas, zonaResumen, alertas } from './data/dashboard.js'
 
 const NOMBRE_INC = Object.fromEntries(incentivos.map(i => [i.id, i.nombre]))
 const pct = (x) => `${Math.round(x)}%`
@@ -94,6 +94,8 @@ export default function Dashboard({ onOpen }) {
 /* =================== RESUMEN =================== */
 function Resumen({ onOpen, alertas, irA }) {
   const c = consolidadoKpis()
+  const activos = incentivos.filter(esActivo)
+  const inactivos = incentivos.filter(i => !esActivo(i))
 
   return (
     <div className="space-y-7">
@@ -126,16 +128,43 @@ function Resumen({ onOpen, alertas, irA }) {
         </Card>
       )}
 
-      {/* Boxes por incentivo */}
+      {/* Programas activos */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold flex items-center gap-2"><Icon.Layers width={18} height={18} /> Programas de incentivo</h2>
-          <span className="text-xs text-kia-gray">{incentivos.length} programas</span>
+          <h2 className="text-base font-bold flex items-center gap-2"><Icon.Layers width={18} height={18} /> Programas activos</h2>
+          <span className="text-xs text-kia-gray">{activos.length} de {incentivos.length} programas</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {incentivos.map(inc => <IncentivoBox key={inc.id} inc={inc} onOpen={onOpen} />)}
+          {activos.map(inc => <IncentivoBox key={inc.id} inc={inc} onOpen={onOpen} />)}
         </div>
       </div>
+
+      {/* Programas desactivados */}
+      {inactivos.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-kia-gray">Programas desactivados</h2>
+            <span className="text-xs text-kia-gray">No suman a KPIs ni alertas</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {inactivos.map(inc => <IncentivoInactivo key={inc.id} inc={inc} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function IncentivoInactivo({ inc }) {
+  const I = Icon[inc.icon] || Icon.Database
+  return (
+    <div className="rounded-2xl border border-dashed border-kia-line bg-white/60 px-4 py-3 flex items-center gap-3" aria-disabled="true">
+      <span className="h-9 w-9 shrink-0 rounded-xl grid place-items-center bg-slate-100 text-slate-400"><I width={17} height={17} /></span>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-kia-gray truncate">{inc.nombre}</div>
+        <div className="text-[11px] text-slate-400 truncate">{inc.fuente}</div>
+      </div>
+      <Pill tone="gray">{ESTATUS_INCENTIVO.inactivo.label}</Pill>
     </div>
   )
 }
@@ -251,7 +280,7 @@ function Zonas() {
     <div className="space-y-5">
       <p className="text-sm text-kia-gray max-w-2xl">Seguimiento para gerentes de zona: avance de la red y dealers retrasados por incentivo.</p>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {zonas.map(z => <ZonaCard key={z.id} zona={z} />)}
+        {zonasActivas().map(z => <ZonaCard key={z.id} zona={z} />)}
       </div>
     </div>
   )

@@ -6,11 +6,15 @@
 //  Todo es data mock para la maqueta.
 // ============================================================
 
-import { incentivos } from './incentivos.js'
+import { incentivos, esActivo } from './incentivos.js'
+
+const activos = () => incentivos.filter(esActivo)
+const idsActivos = () => new Set(activos().map(i => i.id))
 
 // --- KPIs por incentivo (mock). pagado + porPagar ≈ ejecutado. ---
 export const KPIS = {
-  variable:    { pagado: 210000, porPagar: 90000,  rechazado: 48000,  quick: 'Rechazo por soporte SAP incompleto; pago al corriente.' },
+  // Margen Variable · marzo 2026 con las reglas de la guía (provisión no pagada = disponible).
+  variable:    { pagado: 25387341, porPagar: 0, rechazado: 0, quick: 'Marzo 2026 con las reglas de la guía: 6,377 de 8,114 VIN pagados; coincide con Finanzas en 8,113 VIN.' },
   opening:     { pagado: 470000, porPagar: 170000, rechazado: 60000,  quick: 'Avance en línea; sin observaciones críticas.' },
   lowrate:     { pagado: 610000, porPagar: 248000, rechazado: 90000,  quick: 'Ejecución estable; rechazo dentro de rango.' },
   floorplan:   { pagado: 360000, porPagar: 152000, rechazado: 70000,  quick: 'Rechazo al límite por documentación de inventario.' },
@@ -50,7 +54,7 @@ export function kpisIncentivo(inc) {
 // Consolidado de toda la cartera para la fila de KPIs superior.
 export function consolidadoKpis() {
   let pagado = 0, porPagar = 0, rechazado = 0, presupuesto = 0
-  incentivos.forEach(inc => {
+  activos().forEach(inc => {
     const k = KPIS[inc.id] || { pagado: 0, porPagar: 0, rechazado: 0 }
     pagado += k.pagado; porPagar += k.porPagar; rechazado += k.rechazado
     presupuesto += inc.presupuesto
@@ -73,7 +77,7 @@ export const zonas = [
       { id: 'D01', nombre: 'KIA Polanco', ciudad: 'CDMX', avance: 88, retrasos: [] },
       { id: 'D04', nombre: 'KIA Puebla Angelópolis', ciudad: 'Puebla', avance: 52, retrasos: [
         { incentivo: 'cashback', dias: 6, motivo: 'Facturas PDF pendientes' },
-        { incentivo: 'variable', dias: 4, motivo: 'Soporte SAP incompleto' }
+        { incentivo: 'variable', dias: 4, motivo: 'Layout MV sin MOU del mes' }
       ] }
     ]
   },
@@ -110,19 +114,28 @@ export const zonas = [
   }
 ]
 
+// Zonas con retrasos sólo de programas activos (los desactivados no generan seguimiento).
+export function zonasActivas() {
+  const ids = idsActivos()
+  return zonas.map(z => ({
+    ...z,
+    dealers: z.dealers.map(d => ({ ...d, retrasos: d.retrasos.filter(r => ids.has(r.incentivo)) }))
+  }))
+}
+
 // Deriva métricas de una zona (avance promedio, dealers/retrasos, retraso máx.).
 export function zonaResumen(z) {
   const avance = Math.round(z.dealers.reduce((a, d) => a + d.avance, 0) / z.dealers.length)
   const dealersRetrasados = z.dealers.filter(d => d.retrasos.length > 0)
   const retrasos = z.dealers.flatMap(d => d.retrasos)
   const diasMax = retrasos.reduce((a, r) => Math.max(a, r.dias), 0)
-  return { avance, dealersRetrasados, totalDealers: z.dealers.length, retrasos, diasMax, alerta: diasMax >= 5 || avance < 60 }
+  return { avance, dealersRetrasados, totalDealers: z.dealers.length, retrasos, diasMax, alerta: dealersRetrasados.length > 0 && (diasMax >= 5 || avance < 60) }
 }
 
 // --- Motor de alertas: se detonan cuando un KPI cae ---
 export function alertas() {
   const out = []
-  incentivos.forEach(inc => {
+  activos().forEach(inc => {
     const k = kpisIncentivo(inc)
     if (k.alertaRechazo) out.push({
       tipo: 'incentivo', severidad: 'alta', contexto: inc.nombre,
@@ -135,7 +148,7 @@ export function alertas() {
       detalle: `${Math.round(k.backlogPago * 100)}% del monto validado sigue por pagar (umbral ${Math.round(UMBRALES.backlogPago * 100)}%).`
     })
   })
-  zonas.forEach(z => {
+  zonasActivas().forEach(z => {
     const r = zonaResumen(z)
     if (r.alerta) out.push({
       tipo: 'zona', severidad: r.diasMax >= 7 ? 'alta' : 'media', contexto: `Zona ${z.nombre}`,

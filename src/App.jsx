@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard.jsx'
-import VariableMarginFlow from './incentivos/variable/VariableMarginFlow.jsx'
+import MargenVariableFlow from './incentivos/margen-variable/ui/MargenVariableFlow.jsx'
 import OpeningFeeFlow from './incentivos/opening/OpeningFeeFlow.jsx'
 import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
@@ -8,11 +8,11 @@ import FleetClaimFlow from './incentivos/fleet/FleetClaimFlow.jsx'
 import KiaFidelityFlow from './incentivos/fidelity/KiaFidelityFlow.jsx'
 import CashbackMarginFlow from './incentivos/cashback/CashbackMarginFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
-import { incentivos } from './data/incentivos.js'
+import { incentivos, esActivo } from './data/incentivos.js'
 
 // Incentivos con flujo propio construido.
 const FLUJOS = {
-  variable: VariableMarginFlow,
+  margenVariable: MargenVariableFlow,
   opening: OpeningFeeFlow,
   lowrate: OpeningFeeFlow,
   floorplan: OpeningFeeFlow,
@@ -33,6 +33,11 @@ export default function App() {
 
   const incentivo = incentivos.find(i => i.id === vista)
   const volver = () => setVista('home')
+
+  // Los programas desactivados no se abren.
+  if (!incentivo || !esActivo(incentivo)) {
+    return <Dashboard onOpen={setVista} />
+  }
 
   // Incentivos con flujo completo construido (Cashback, Feria de Crédito).
   const Flujo = FLUJOS[incentivo?.flujo]

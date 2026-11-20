@@ -24,3 +24,8 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #b4bcc2; }
 
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Campos numéricos sin flechas del navegador (fichas de parámetros) */
+.sin-spinner::-webkit-outer-spin-button,
+.sin-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sin-spinner { -moz-appearance: textfield; appearance: textfield; }

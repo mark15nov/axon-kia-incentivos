@@ -66,5 +66,50 @@ src/
 - Para conectar a datos reales, sustituir los imports de `mockData.js` por llamadas a tu API/SAP.
 - El estilo de marca está centralizado en `tailwind.config.js` (`colors.kia`).
 
+## Margen Variable (incentivo activo)
+
+Es el único programa activo; el resto aparece como **Desactivado** en el dashboard
+(no se abre ni suma a KPIs, alertas o zonas). Código en `src/incentivos/margen-variable/`:
+
+```
+motor/      parametros.js · layouts.js · calculo.js · conciliacion.js   ← lógica pura, sin React
+excel/      leerLibro.js · leerCalculoFinanzas.js · reporteFinanzas.js  ← lectura y Excel formulado
+ui/         MargenVariableFlow.jsx + un archivo por paso
+```
+
+**Guía oficial:** el archivo de cálculo de Finanzas (`Calculation File_MV`). La plataforma
+replica sus reglas y entrega el Excel con su mismo formato; el archivo no se sube cada mes.
+
+**Dos versiones** (selector en el menú lateral del programa):
+- **Cálculo en plataforma** (default): se suben 2 Excel, `Layout Carga Ventas` (hoja Data) y
+  `Layout_Carga_MV` (LY_PROVISION_VIN, LY_MOS_DEALER, LY_WS_DEALER, LY_MOU, CAT_DEALERS y LY_CURTAILMENT).
+- **Con conciliación**: además se sube un `Calculation File_MV` para comparar VIN por VIN, y se
+  puede comparar contra la política escrita.
+
+**Reglas de la guía** (umbrales editables en el paso 1):
+- **A** · Retail ≥ 100% vs MOU retail y (WHS ≥ 90% o MOS > 2) → provisión a todas las unidades.
+- **B** · Retail < 100%, WHS ≥ 90% y modelo ≥ 100% → provisión a las unidades de ese modelo.
+- **Bono** · +50% si es inventario nuevo, ventas retail ≥ 110% del MOU retail y el modelo no es Sonet.
+- **Curtailment** · los VIN de la hoja LY_CURTAILMENT se pagan en $0.
+- **Modelos y versiones** · catálogo Kia México (`motor/catalogoModelos.js`) con exclusiones por modelo o versión para la regla B y para el bono (`modelosSinReglaB`, `modelosSinBono`; llaves `SONET` o `SONET|EX IVT`). Las versiones nuevas del layout de ventas se agregan solas.
+- La **política escrita** difiere en 3 puntos (bono sobre ventas totales, ">" estricto, sin curtailment)
+  y está disponible como alternativa (`POLITICA_ESCRITA`). Con la guía, marzo 2026 coincide con
+  Finanzas en 8,113 de 8,114 VIN ($25.39 M); con la política escrita serían $21.92 M.
+
+**Excel para Finanzas** (`Calculation File_MV {MES} {AA}.xlsx`), mismo formato que la guía:
+MONTHLY MV, MV {MES} por Modelo, CALCULO, Resumen de Pago (MXN y USD), BC, las bases
+(SALES, PROVISION, MOS, WHS, MOU, DEALERS, Curtailment) y PARAMETROS con celdas nombradas
+(umbrales, tipo de cambio 19.8 y centro de costo K8200). Todo formulado.
+
+```bash
+npm test                       # pruebas del motor y del Excel
+npm run mv:demo                # regenera public/demo/* desde "Calculation File_MV Axon.xlsx"
+npm run mv:correr -- <ventas.xlsx> <layout_mv.xlsx> [calculo_finanzas.xlsx] [--finanzas] [--excel=salida.xlsx]
+python3 scripts/verificar_excel_mv.py <libro.xlsx>   # recalcula fórmulas y cuadra contra la plataforma (pip install formulas)
+```
+
+El paquete demo (`public/demo/`, marzo 2026) se arma desde el archivo de cálculo de Finanzas
+porque los layouts de ejemplo no cruzan entre sí (provisión 202603 vs. ventas nov-2026).
+
 ---
 Maqueta de demostración · datos ficticios.

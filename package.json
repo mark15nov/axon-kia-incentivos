@@ -7,9 +7,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/margen-variable/*.test.js",
+    "mv:demo": "node scripts/construir-demo-mv.mjs",
+    "mv:correr": "node scripts/correr-mv.mjs"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
