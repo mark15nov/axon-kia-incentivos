@@ -15,8 +15,11 @@ import CashbackStep5 from './CashbackStep5PagoFinanzas.jsx'
 const ETAPAS = {
   1: 'Definición del incentivo',
   2: 'Facturación y validación',
-  3: 'Finanzas y pago'
+  3: 'MONTHLY'
 }
+
+// Destinatarios del reporte del periodo (envío desde el sidebar).
+const DESTINATARIOS = ['AMDK', 'Dueños', 'Gerentes Generales', 'Gerentes de Ventas', 'Gerentes Administrativos']
 
 const STEPS = [
   { n: 1, etapa: 1, p: 1, key: 'conc', titulo: 'Definir Oferta Comercial', fuente: 'Oferta aprobada + SAP', icon: Icon.Sliders, Comp: CashbackStep1 },
@@ -24,13 +27,16 @@ const STEPS = [
   { n: 3, etapa: 1, p: 3, key: 'vobo', titulo: 'VoBo de Finanzas', fuente: 'Autorización + correos', icon: Icon.Shield, Comp: CashbackVoBo },
   { n: 4, etapa: 2, p: 1, key: 'recepfact', titulo: 'Recepción de Facturas', fuente: 'Facturas PDF + XML', icon: Icon.Upload, Comp: VariableStep4 },
   { n: 5, etapa: 2, p: 2, key: 'validfact', titulo: 'Validación de Facturas', fuente: 'Cruce y rechazos', icon: Icon.Check, Comp: VariableStep5 },
-  { n: 6, etapa: 3, p: 1, key: 'pago', titulo: 'Finanzas y pago', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: CashbackStep5 }
+  { n: 6, etapa: 3, p: 1, key: 'pago', titulo: 'MONTHLY', fuente: 'Posteo · aprobación · pago', icon: Icon.Cash, Comp: CashbackStep5 }
 ]
 
 export default function CashbackMarginFlow({ onBack, incentivo }) {
   const [current, setCurrent] = useState(1)
   const [done, setDone] = useState([])
   const [okPago, setOkPago] = useState(false)
+  const [reporteOpen, setReporteOpen] = useState(false)
+  const [destinatarios, setDestinatarios] = useState([])
+  const [reporteEnviado, setReporteEnviado] = useState(false)
 
   const nombre = incentivo?.nombre ?? 'Cashback'
   const subtitulo = 'Bono en efectivo al cliente'
@@ -42,6 +48,15 @@ export default function CashbackMarginFlow({ onBack, incentivo }) {
   const markDone = (n) => setDone(d => (d.includes(n) ? d : [...d, n]))
   const goNext = () => { markDone(current); if (current < STEPS.length) setCurrent(current + 1) }
   const goPrev = () => current > 1 && setCurrent(current - 1)
+
+  const toggleDestinatario = (d) =>
+    setDestinatarios(list => (list.includes(d) ? list.filter(x => x !== d) : [...list, d]))
+  const enviarReporte = () => {
+    if (!destinatarios.length) return
+    setReporteEnviado(true)
+    setReporteOpen(false)
+    setTimeout(() => setReporteEnviado(false), 3000)
+  }
 
   return (
     <div className="min-h-screen flex bg-kia-bg text-kia-black">
@@ -102,6 +117,41 @@ export default function CashbackMarginFlow({ onBack, incentivo }) {
             <Icon.Clock className="text-kia-red-soft" width={15} height={15} />
             <span className="text-sm font-semibold">{VM_PERIODO}</span>
           </div>
+        </div>
+
+        {/* ---------- Envío de reporte ---------- */}
+        <div className="px-4 pb-4 pt-1">
+          {reporteOpen && (
+            <div className="mb-2 rounded-xl bg-white/[0.07] ring-1 ring-white/15 p-3 animate-fade-up">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45 mb-2">Enviar a</div>
+              <div className="space-y-0.5">
+                {DESTINATARIOS.map(d => {
+                  const checked = destinatarios.includes(d)
+                  return (
+                    <label key={d} className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
+                      <input type="checkbox" checked={checked} onChange={() => toggleDestinatario(d)} className="sr-only" />
+                      <span className={`h-4 w-4 shrink-0 rounded grid place-items-center text-[10px] font-bold transition-colors ${
+                        checked ? 'bg-orange-500 text-white' : 'bg-white/10 ring-1 ring-white/20 text-transparent'
+                      }`}>✓</span>
+                      <span className={`text-[13px] leading-tight ${checked ? 'text-white font-medium' : 'text-white/65'}`}>{d}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              <button onClick={enviarReporte} disabled={!destinatarios.length}
+                className="mt-2.5 w-full rounded-lg px-3 py-2 text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                Enviar a {destinatarios.length || 0} destinatario(s)
+              </button>
+            </div>
+          )}
+
+          <button onClick={() => setReporteOpen(o => !o)}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors">
+            {reporteEnviado
+              ? <><Icon.Check width={16} height={16} /> REPORTE ENVIADO</>
+              : <><Icon.Mail width={16} height={16} /> ENVIAR REPORTE</>}
+            <Icon.Chevron width={13} height={13} className={`transition-transform ${reporteOpen ? '-rotate-90' : 'rotate-90'}`} />
+          </button>
         </div>
       </aside>
 
