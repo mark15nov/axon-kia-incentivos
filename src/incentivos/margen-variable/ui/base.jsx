@@ -38,7 +38,7 @@ const TONOS_PILL = {
 
 export function Pill({ children, tone = 'gray' }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold border ${TONOS_PILL[tone]}`}>
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-0.5 text-xs font-semibold border ${TONOS_PILL[tone]}`}>
       {children}
     </span>
   )
