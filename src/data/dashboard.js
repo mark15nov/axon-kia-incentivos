@@ -19,7 +19,8 @@ export const KPIS = {
   lowrate:     { pagado: 610000, porPagar: 248000, rechazado: 90000,  quick: 'Ejecución estable; rechazo dentro de rango.' },
   floorplan:   { pagado: 360000, porPagar: 152000, rechazado: 70000,  quick: 'Rechazo al límite por documentación de inventario.' },
   fleetclaim:  { pagado: 165000, porPagar: 120000, rechazado: 62000,  quick: 'Rechazo y backlog altos; órdenes de compra sin validar.' },
-  kiafidelity: { pagado: 360000, porPagar: 145000, rechazado: 55000,  quick: 'Avance saludable; validación contra Inbursa al día.' },
+  // Kia Fidelity · simulado sep-2026: a pagar 351,230; retenido por aclarar 65,597; ajustes 28,358.
+  kiafidelity: { pagado: 351230, porPagar: 65597, rechazado: 28358, quick: 'Sep-26: 30 contratos, 2 ajustados y 6 retenidos; 6 VIN con débito a dealers.' },
   cashback:    { pagado: 455000, porPagar: 260000, rechazado: 135000, quick: 'Rechazo alto por VIN fuera de periodo; pago rezagado.' },
   feria:       { pagado: 890000, porPagar: 420000, rechazado: 130000, quick: 'Volumen alto; ejecución conforme al evento.' },
   bonoventas:  { pagado: 120000, porPagar: 90000,  rechazado: 55000,  quick: 'Rechazo elevado por VQM; requiere revisión.' }

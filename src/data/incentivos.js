@@ -51,9 +51,9 @@ export const incentivos = [
   },
   {
     id: 'kiafidelity', clave: 'KF', nombre: 'KIA Fidelity', icon: 'Star',
-    desc: 'Beneficio de crédito por fidelidad calculado con el monto financiado y la Oferta Comercial, validado contra el pago de Inbursa.',
-    fuente: 'SAP · Inbursa', presupuesto: 1560000, ejecutado: 505000,
-    dealers: 6, aclaraciones: 2, estatus: 'inactivo', flujo: 'kiafidelity'
+    desc: 'Subsidio de tasa a la financiera por crédito (Charge = intereses a tasa teórica − tasa real). Valida el reclamo y calcula débitos a dealers por VIN.',
+    fuente: 'Financiera · SAP · VINS pagados', presupuesto: 445185, ejecutado: 351230,
+    dealers: 3, aclaraciones: 6, estatus: 'activo', flujo: 'kiaFidelity'
   },
   {
     id: 'cashback', clave: 'CB', nombre: 'Cashback', icon: 'Cash',

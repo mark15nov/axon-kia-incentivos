@@ -6,6 +6,7 @@ import FeriaCreditoFlow from './incentivos/feria/FeriaCreditoFlow.jsx'
 import BonoVentasFlow from './incentivos/bono/BonoVentasFlow.jsx'
 import FleetClaimFlow from './incentivos/fleet/FleetClaimFlow.jsx'
 import KiaFidelityFlow from './incentivos/fidelity/KiaFidelityFlow.jsx'
+import FidelityFlow from './incentivos/kia-fidelity/ui/FidelityFlow.jsx'
 import CashbackMarginFlow from './incentivos/cashback/CashbackMarginFlow.jsx'
 import IncentivoShell from './incentivos/IncentivoShell.jsx'
 import { incentivos, esActivo } from './data/incentivos.js'
@@ -18,6 +19,7 @@ const FLUJOS = {
   floorplan: OpeningFeeFlow,
   fleetclaim: FleetClaimFlow,
   kiafidelity: KiaFidelityFlow,
+  kiaFidelity: FidelityFlow,
   cashback: CashbackMarginFlow,
   feria: FeriaCreditoFlow,
   bonoventas: BonoVentasFlow

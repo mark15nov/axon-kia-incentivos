@@ -113,3 +113,29 @@ porque los layouts de ejemplo no cruzan entre sí (provisión 202603 vs. ventas 
 
 ---
 Maqueta de demostración · datos ficticios.
+
+## Kia Fidelity (incentivo activo)
+
+Kia paga a la financiera un subsidio de tasa por crédito: **Charge = intereses a tasa teórica − intereses a tasa real**.
+Cada mes se responden dos preguntas por separado (el débito al dealer **no** se resta del pago):
+
+- **A · Pago a la financiera**: cuadre (Dossier en calculadora, suma vs hoja CHARGE), duplicados, VIN válido (17 caracteres y en SAP),
+  datos de captura (plazo, tasa, monto, accesorios + GAP, versión), tasa de beneficio vs catálogo vigente, recálculo independiente
+  del Charge al centavo (detecta el total de intereses reales "AC" que no cuadra con la amortización mensual) y seguro Externa.
+  Resultado por Dossier: **Procede** (se paga lo reclamado), **Ajuste** (se paga el recalculado) o **Retenido** (hasta la corrección).
+- **B · Débitos al distribuidor** con motivo por VIN: ya pagado, incompatible (matriz COMPAT), duplicado, fuera de plazo (N-rule) y demo.
+  Lo que las reglas no cubren queda **por revisar** (no se inventan criterios).
+
+Código en `src/incentivos/kia-fidelity/` (`motor/` reglas puras, `excel/` cierre, `ui/` flujo). La compatibilidad entre incentivos
+es general para la plataforma: `src/incentivos/shared/compatibilidad.js`.
+
+Entregables: resumen en dos columnas, detalle por VIN, subtotales por razón social, correo a la financiera listo para enviar,
+Excel de cierre (totales con fórmulas) y **VINS PAGADOS actualizado** (mismo formato de entrada, para validar incentivos futuros).
+
+Parámetros por confirmar con KIA (configurables en el paso 1): N-rule (default N-1 meses) y antigüedad mínima de demo (default 90 días).
+
+```bash
+npm run fidelity:correr -- --detalle          # corre el motor con los SIMULADO de public/demo/fidelity
+```
+
+Prueba de aceptación: con los archivos SIMULADO el motor detecta los 30 casos de "Casos plantados" (`tests/kia-fidelity/`).

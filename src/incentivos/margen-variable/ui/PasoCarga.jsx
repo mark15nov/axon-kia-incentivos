@@ -12,8 +12,8 @@ const SEVERIDAD = {
   info: { tono: 'gray', label: 'Info', punto: 'bg-slate-400' }
 }
 
-function ZonaArchivo({ tipo, archivo, onArchivo, onQuitar }) {
-  const meta = ARCHIVOS[tipo]
+/** Zona de carga de un .xlsx. `meta` permite usarla en otros incentivos (default: archivos de MV). */
+export function ZonaArchivo({ tipo, archivo, onArchivo, onQuitar, meta = ARCHIVOS[tipo] }) {
   const ref = useRef(null)
   const [arrastre, setArrastre] = useState(false)
   const estado = archivo?.estado
